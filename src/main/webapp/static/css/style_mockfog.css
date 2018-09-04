@@ -1,0 +1,144 @@
+
+body {
+	background-color: #efefef;
+}
+
+#docnetwork canvas { 
+	height: 100%;
+	width: 100%;
+	min-height: 400px;
+	/*background-color: #efefef !important; */
+	background-color: #fff !important;
+}
+
+/*  Reset icons start*/
+div.vis-network div.vis-manipulation {
+	background: none;
+	border-bottom: none;
+	display: none;
+}
+
+#svgLogo {
+	width: 150px;
+    margin-left: 20px;
+	height: 100%;
+	/*display: inline;*/
+}
+
+#svgLogoPath {
+	/* fill:#5599ff;fill-opacity:1;stroke:none;stroke-width:2.2983439;  */
+	/*fill:#2a76b6;*/
+	fill: #59f;
+	fill-opacity:1;
+	/*stroke:#2a76b6;*/
+	stroke-width:2.2983439; 
+}
+.navbar-brand {
+	height: 100%;
+}
+
+
+.selectionRectangle {
+	position:absolute; 
+	border: 1px solid #0065ff;
+	background-color: #9bcbff; 
+	background: rgba(155, 203, 255, .5);
+	opacity: 0.6;
+	z-index:999;	
+}
+
+#docnetwork {
+	height:100%;position:absolute;left: 0px; top: 0px; width:100%; height: 100%; z-index:1;
+}
+
+
+.visnetwork {
+
+}
+
+.page-wrapper {
+
+}
+
+
+.navbar, .page-header {
+    border-bottom: 1px solid #b3b3b3;
+    background-color: #fafafa5c;
+}
+
+.navbar .btn {
+	margin-left: 15px;
+}
+
+.navbar ul {
+	list-style: none;
+	margin:0;
+	padding:0;
+	float:left;
+}
+
+.navbar ul li {
+	display: inline-block;
+    position: relative;
+    float: left;
+    line-height: 48px;
+    font-size: 16px;
+    text-transform: uppercase;
+    color: #ababab;
+    white-space: nowrap;	
+}
+
+
+.navbar a {
+	display: block;
+	text-decoration: none;
+	color: #FFF;
+	padding: 0 18px;
+}
+
+
+#menuSelected {
+	position: fixed;
+	
+	top: 10px;
+	left: 260px;
+	width: 900px;
+	height: 38px;
+
+}
+
+.toolbar {
+	margin: 3px !important;
+	padding: 6px !important;
+	/*border-radius: 6px !important;*/
+}
+/*
+button:hover:enabled{
+	background-color: yellow !important;
+}
+*/
+.topSeparator {
+	display:inline-block;
+	width:20px;
+}
+
+
+label.file-upload {
+	position: relative;
+	overflow: hidden
+}
+label.file-upload input[type=file] {
+	position: absolute;
+	top: 0;
+	right: 0;
+	min-width: 100%;
+	min-height: 100%;
+	font-size: 100px;
+	text-align: right;
+	filter: alpha(opacity=0);
+	opacity: 0;
+	outline: 0;
+	background: #fff;
+	cursor: inherit;
+	display: block
+}

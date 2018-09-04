@@ -1,0 +1,2342 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"version": "1.0",
+		"title": "MockFog-Nodemanager",
+		"description": "",
+		"contact": {
+			"name": "MockFog team"
+		}
+	},
+	"host": "localhost:7474",
+	"basePath": "/webapi",
+	"schemes": [
+		"http"
+	],
+	"tags": [{
+			"name": "document",
+			"description": "A document collects all information with respect to nodes, networks and all relationships in between."
+		},
+		{
+			"name": "net-node-vertex",
+			"description": "Comprises nets, nodes and vertices with regards to the current document."
+		},
+		{
+			"name": "edge",
+			"description": "Comprises all edges between two nodes."
+		},
+		{
+			"name": "yml-config",
+			"description": "Endpoints that configure the used cloud infrastructure provider."
+		},
+		{
+			"name": "bootstrap",
+			"description": "Runs Ansible IaC service in order to start/bootstrap all virtual machines and networks."
+		},
+		{
+			"name": "destroy",
+			"description": "Runs Ansible IaC service in order to destroy/delete all virtual machines and networks."
+		},
+		{
+			"name": "yml",
+			"description": "Endpoints that return the network topology as an yml file that can be run by Ansible."
+		},
+		{
+			"name": "parse-dhcp",
+			"description": "Applies dhcp information (IPs) to the network model."
+		},
+		{
+			"name": "propagation",
+			"description": "Applies changes to the network topology on the model layer."
+		},
+		{
+			"name": "ansiblelog",
+			"description": "Gives information about the ansible status."
+		},
+		{
+			"name": "process",
+			"description": "Interaction with processes that are started on the NodeManager (virtual) machine."
+		},
+		{
+			"name": "tc-config",
+			"description": "Interaction with traffic control that has to be applied to different nodes or edges."
+		},
+		{
+			"name": "firewall",
+			"description": "Interaction with iptables in order to realize a firewall."
+		},
+		{
+			"name": "versioning",
+			"description": "Endpoints for organizing different document states."
+		},
+		{
+			"name": "endpoints for testing",
+			"description": "Interaction with endpoints only for testing purposes."
+		}
+	],
+	"consumes": [
+		"application/json"
+	],
+	"produces": [
+		"application/json"
+	],
+	"paths": {
+		"/doc": {
+			"post": {
+				"tags": [
+					"document"
+				],
+				"description": "Create a new doc by it's name and return it.",
+				"operationId": "create_doc",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "body",
+					"description": "List of key-value pairs of properties.",
+					"required": true,
+					"schema": {
+						"type": "object",
+						"required": [
+							"docName"
+						],
+						"properties": {
+							"docName": {
+								"type": "string",
+								"example": "New Document"
+							}
+						}
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Doc created",
+						"schema": {
+							"$ref": "#/definitions/ModelGraph"
+						}
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"document"
+				],
+				"description": "Return all documents as a List.",
+				"operationId": "get_all_docs",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "List of all documents",
+						"schema": {
+							"type": "object",
+							"properties": {
+								"docs": {
+									"type": "array",
+									"items": {
+										"$ref": "#/definitions/ModelGraph"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/doc/{docId}": {
+			"get": {
+				"tags": [
+					"document"
+				],
+				"description": "Get doc by Id.",
+				"operationId": "get_doc_by_id",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Doc found.",
+						"schema": {
+							"$ref": "#/definitions/ModelGraph"
+						}
+					},
+					"404": {
+						"description": "Doc not found."
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"document"
+				],
+				"description": "Delete a doc by it's id.",
+				"operationId": "delete_doc",
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Doc deleted."
+					},
+					"404": {
+						"description": "Doc not found."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/net": {
+			"post": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Create new (sub)net.",
+				"operationId": "create_net",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"required": [
+								"name",
+								"addr"
+							],
+							"properties": {
+								"name": {
+									"type": "string",
+									"example": "net1"
+								},
+								"addr": {
+									"type": "string",
+									"example": "1.0.0.0/24"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Net created.",
+						"schema": {
+							"$ref": "#/definitions/ModelVertex"
+						}
+					},
+					"400": {
+						"description": "Illegal Document Reference."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/node": {
+			"post": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Create new node/device by it's name.",
+				"operationId": "create_node",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"required": [
+								"name"
+							],
+							"properties": {
+								"name": {
+									"type": "string",
+									"example": "node1"
+								},
+								"flavor": {
+									"type": "string",
+									"enum": [
+										"Raspberry Pi 2 Model B",
+										"Raspberry Pi 3 Model B",
+										"Raspberry Pi 3 Model B+",
+										"BeagleBone Black",
+										"BeagleBone",
+										"BeagleBone Black",
+										"Banana Pi",
+										"Banana Pi M3",
+										"Arduino Tre",
+										"Arduino Intel Galileo",
+										"Nebbiolo fogNode Series"
+									],
+									"example": "Raspberry Pi 2 Model B"
+								},
+								"image": {
+									"type": "string",
+									"enum": [
+										"ubuntu-16.04"
+									]
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Node created.",
+						"schema": {
+							"$ref": "#/definitions/ModelNode"
+						}
+					},
+					"400": {
+						"description": "Illegal Document Reference."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/net/{netId}": {
+			"put": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Edit net by id.",
+				"operationId": "edit_net",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "netId",
+						"in": "path",
+						"description": "Identifier of current Net.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"addr": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Net edited.",
+						"schema": {
+							"$ref": "#/definitions/ModelVertex"
+						}
+					},
+					"400": {
+						"description": "Illegal Document Reference."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/node/{nodeId}": {
+			"put": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Edit node by id.",
+				"operationId": "edit_node",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of current Node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"flavor": {
+									"type": "string",
+									"enum": [
+										"Raspberry Pi 2 Model B",
+										"Raspberry Pi 3 Model B",
+										"Raspberry Pi 3 Model B+",
+										"BeagleBone Black",
+										"BeagleBone",
+										"BeagleBone Black",
+										"Banana Pi",
+										"Banana Pi M3",
+										"Arduino Tre",
+										"Arduino Intel Galileo",
+										"Nebbiolo fogNode Series"
+									]
+								},
+								"image": {
+									"type": "string",
+									"enum": [
+										"ubuntu-16.04"
+									]
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Node edited.",
+						"schema": {
+							"$ref": "#/definitions/ModelNode"
+						}
+					},
+					"400": {
+						"description": "Illegal Document Reference."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/vertex/{id}": {
+			"get": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Get Vertex (Node | Net) by id.",
+				"operationId": "get_vertex_by_id",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Identifier of current Vertex (Node | Net).",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Vertex (Node) representation.",
+						"schema": {
+							"description": "Vertex (Node) representation.",
+							"$ref": "#/definitions/ModelNode"
+						}
+					},
+					"404": {
+						"description": "Vertex not found."
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"net-node-vertex"
+				],
+				"description": "Delete Vertex (Net | Node) by id.",
+				"operationId": "delete_vertex_by_id",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Identifier of current Vertex (Node | Net).",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Vertex deleted."
+					},
+					"400": {
+						"description": "Illegal document reference. Vertex not deleted."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/edge/{nodeFromId}/{nodeToId}": {
+			"get": {
+				"tags": [
+					"edge"
+				],
+				"description": "Endpoint returning node from nodeToId as JSON document with edge in edgesBack.",
+				"operationId": "get_edge_between_two_nodes",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeFromId",
+						"in": "path",
+						"description": "Identifier of source node, where edge is outgoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeToId",
+						"in": "path",
+						"description": "Identifier of destination node, where edge is ingoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Edge found.",
+						"schema": {
+							"description": "Edge representation as ingoing edge in end node.",
+							"$ref": "#/definitions/ModelVertex"
+						}
+					},
+					"404": {
+						"description": "Vertex not found."
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"edge"
+				],
+				"description": "Endpoint returning node from nodeToId as JSON document with created edge in edgesBack.",
+				"operationId": "create_edge_between_two_nodes",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeFromId",
+						"in": "path",
+						"description": "Identifier of source node, where edge is outgoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeToId",
+						"in": "path",
+						"description": "Identifier of destination node, where edge is ingoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Edge created.",
+						"schema": {
+							"description": "Edge representation as ingoing edge in end node.",
+							"$ref": "#/definitions/ModelVertex"
+						}
+					},
+					"400": {
+						"description": "You can't insert an edge from a node to itself.."
+					},
+					"404": {
+						"description": "Vertex not found."
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"edge"
+				],
+				"description": "Edit edge.",
+				"operationId": "edit_edge",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeFromId",
+						"in": "path",
+						"description": "Identifier of source node, where edge is outgoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeToId",
+						"in": "path",
+						"description": "Identifier of destination node, where edge is ingoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"in_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"out_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"delay": {
+									"type": "string",
+									"example": "10"
+								},
+								"dispersion": {
+									"type": "string",
+									"example": "10"
+								},
+								"loss": {
+									"type": "string",
+									"example": "0.05"
+								},
+								"corrupt": {
+									"type": "string",
+									"example": "0.01"
+								},
+								"duplicate": {
+									"type": "string",
+									"example": "0.05"
+								},
+								"reorder": {
+									"type": "string",
+									"example": "0.1"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Edge edited.",
+						"schema": {
+							"description": "Edge representation as ingoing edge in end node.",
+							"$ref": "#/definitions/ModelVertex"
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"edge"
+				],
+				"description": "Delete edge.",
+				"operationId": "create_net",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeFromId",
+						"in": "path",
+						"description": "Identifier of source node, where edge is outgoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeToId",
+						"in": "path",
+						"description": "Identifier of destination node, where edge is ingoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Edge deleted. Returns the destination node."
+					},
+					"404": {
+						"description": "Edge not found."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/bootstrap/os": {
+			"get": {
+				"tags": [
+					"bootstrap"
+				],
+				"description": "Execute bootstrap (create yml and run ansible) of doc by docId with OS. Precondition: POST /yml-config/os.",
+				"operationId": "execute_bootstrap_os_by_docId",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Created Ymls. Bootstrapping successfully done."
+					},
+					"400": {
+						"description": "Invalid doc Id."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/bootstrap/aws": {
+			"get": {
+				"tags": [
+					"bootstrap"
+				],
+				"description": "Execute bootstrap (create yml and run ansible) of doc by docId with AWS. Precondition: POST /yml-config/aws.",
+				"operationId": "execute_bootstrap_aws_by_docId",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Created Ymls. Bootstrapping successfully done."
+					},
+					"400": {
+						"description": "Invalid doc Id."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/destroy/os": {
+			"delete": {
+				"tags": [
+					"destroy"
+				],
+				"description": "Destroys doc by docId within OpenStack. Warning: This deletes all created virtual machines and networks!",
+				"operationId": "destroy",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Destroying successfully done."
+					},
+					"400": {
+						"description": "Invalid doc Id."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/destroy/aws": {
+			"delete": {
+				"tags": [
+					"destroy"
+				],
+				"description": "Destroys doc by docId within AWS. Warning: This deletes all created virtual machines and networks!",
+				"operationId": "destroy",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Destroying successfully done."
+					},
+					"400": {
+						"description": "Invalid doc Id."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/yml/os": {
+			"get": {
+				"tags": [
+					"yml"
+				],
+				"deprecated": true,
+				"description": "Get OpenStack Yml of doc by docId.",
+				"operationId": "get_os_yml_by_docId",
+				"produces": [
+					"text/plain"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Extracted Openstack Yml from Doc.",
+						"schema": {
+							"description": "Openstack Yml representation of doc.",
+							"type": "object"
+						}
+					},
+					"428": {
+						"description": "OpenstackConfig not initiated. Create OpenstackConfig first!"
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/yml/aws": {
+			"get": {
+				"tags": [
+					"yml"
+				],
+				"deprecated": true,
+				"description": "Get AWS Yml of doc by docId.",
+				"operationId": "get_aws_yml_by_docId",
+				"produces": [
+					"text/plain"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Extracted AWS Yml from Doc.",
+						"schema": {
+							"description": "AWS Yml representation of doc.",
+							"type": "object"
+						},
+						"500": {
+							"description": "Internal Server Error"
+						}
+					}
+				}
+			}
+		},
+		"/yml/os": {
+			"get": {
+				"tags": [
+					"yml"
+				],
+				"description": "Get OpenStack Yml of instantiated document.",
+				"operationId": "get_os_yml",
+				"produces": [
+					"text/plain"
+				],
+				"parameters": [
+
+				],
+				"responses": {
+					"200": {
+						"description": "Extracted Openstack Yml from Doc.",
+						"schema": {
+							"description": "Openstack Yml representation of doc.",
+							"type": "object"
+						}
+					},
+					"428": {
+						"description": "Document not instantiated."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/yml/aws": {
+			"get": {
+				"tags": [
+					"yml"
+				],
+				"description": "Get AWS Yml of instantiated document.",
+				"operationId": "get_aws_yml",
+				"produces": [
+					"text/plain"
+				],
+				"parameters": [
+
+				],
+				"responses": {
+					"200": {
+						"description": "Extracted AWS Yml from Doc.",
+						"schema": {
+							"description": "AWS Yml representation of doc.",
+							"type": "object"
+						}
+					},
+					"428": {
+						"description": "Document not instantiated."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/yml-config/os": {
+			"post": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Get OpenStack config YML file",
+				"operationId": "generateConfigByOpenStackConfig",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "OpenStackConfig",
+					"description": "OpenStackConfig",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/OpenStackConfig"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OpenStack config YML file",
+						"type": "object"
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Get current OpenStack config YML file",
+				"operationId": "getOSConfigYml",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "OpenStack config YML file",
+						"type": "object"
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Edit OpenStack config YML file. All key-value pairs that are posted are overwritten.",
+				"operationId": "editConfigByOpenStackConfig",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "OpenStackConfig",
+					"description": "OpenStackConfig",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/OpenStackConfig"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "OpenStack config YML file",
+						"type": "object"
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/yml-config/aws": {
+			"post": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Get AWS config YML file",
+				"operationId": "generateConfigByAWSConfig",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "AWSConfig",
+					"required": true,
+					"description": "AWSConfig",
+					"schema": {
+						"$ref": "#/definitions/AWSConfig"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "AWS config AWS file",
+						"schema": {
+							"$ref": "#/definitions/AWSConfig"
+						}
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Get current AWS config YML file",
+				"operationId": "getAWSConfigYml",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "AWS config YML file",
+						"schema": {
+							"$ref": "#/definitions/AWSConfig"
+						}
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"yml-config"
+				],
+				"description": "Edit AWS config YML file. All key-value pairs that are posted are overwritten.",
+				"operationId": "editConfigByAWSConfig",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "AWSConfig",
+					"required": true,
+					"description": "AWSConfig",
+					"schema": {
+						"$ref": "#/definitions/AWSConfig"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "AWS config AWS file",
+						"schema": {
+							"$ref": "#/definitions/AWSConfig"
+						}
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/parseDhcp": {
+			"post": {
+				"tags": [
+					"parse-dhcp"
+				],
+				"deprecated": true,
+				"description": "Execute Dhcp Parsing of doc by docId.",
+				"operationId": "execute_dhcp_parsing_by_docId",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of dhcp.",
+						"schema": {
+							"type": "object"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Dhcp parsed."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/parseDhcp": {
+			"post": {
+				"tags": [
+					"parse-dhcp"
+				],
+				"description": "Execute Dhcp Parsing of instantiated doc. Precondition: POST /doc/{docId}/bootstrap/{platform:aws|os}",
+				"operationId": "execute_dhcp_parsing_by_static_docId",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "body",
+					"description": "List of key-value pairs of dhcp.",
+					"schema": {
+						"type": "object"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Dhcp parsed."
+					},
+					"428": {
+						"description": "Document not instantiated."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/propagate/readonly": {
+			"get": {
+				"tags": [
+					"propagation"
+				],
+				"description": "Execute propagation of doc by docId.",
+				"operationId": "execute_propagation_by_docId",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Propagated doc."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/doc/{docId}/propagate/writeagents": {
+			"get": {
+				"tags": [
+					"propagation"
+				],
+				"description": "Execute propagation of doc by docId and update agents.",
+				"operationId": "execute_propagation_update_agents_by_docId",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Propagated doc."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/propagate/readonly": {
+			"get": {
+				"tags": [
+					"propagation"
+				],
+				"description": "Execute propagation of instantiated document",
+				"operationId": "execute_propagation",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+
+				],
+				"responses": {
+					"200": {
+						"description": "Calculated Matrix of doc."
+					},
+					"428": {
+						"description": "Document not instantiated."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/propagate/writeagents": {
+			"get": {
+				"tags": [
+					"propagation"
+				],
+				"description": "Execute propagation of instantiated document and update agents",
+				"operationId": "execute_propagation_update_agents",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [
+
+				],
+				"responses": {
+					"200": {
+						"description": "Propagated doc."
+					},
+					"428": {
+						"description": "Document not instantiated."
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				}
+			}
+		},
+		"/ansiblelog": {
+			"post": {
+				"tags": [
+					"ansiblelog"
+				],
+				"description": "Set status of the ansible process to inform about the setup of the instantiated document.",
+				"operationId": "set_ansible_status",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"in": "body",
+					"name": "body",
+					"description": "Ansible setup status.",
+					"required": true,
+					"schema": {
+						"$ref": "#/definitions/ResponseAnsible"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Status received.",
+						"schema": {
+							"description": "Reveived Status of the ansible process."
+						}
+					},
+					"428": {
+						"description": "Document not instantiated."
+					}
+				}
+			},
+			"get": {
+				"tags": [
+					"ansiblelog"
+				],
+				"description": "Get status of the ansible process to inform about the setup of the instantiated document.",
+				"operationId": "get_ansible_status",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Status."
+					},
+					"428": {
+						"description": "Document not instantiated."
+					}
+				}
+			}
+		},
+		"/process/logs": {
+			"get": {
+				"tags": [
+					"process"
+				],
+				"description": "Shows std_out and std_err logs that are made by processes.",
+				"operationID": "getProcessLogs",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Logs."
+					},
+					"500": {
+						"description": "Internal Server Error."
+					}
+				}
+			}
+		},
+		"/assign/tc-config/doc/{docId}/edge/{nodeFromId}/{nodeToId}": {
+			"put": {
+				"tags": [
+					"tc-config"
+				],
+				"description": "Live manipulation: Assign new properties to edge.",
+				"operationId": "edit_edge_manipulation",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"text/plain"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeFromId",
+						"in": "path",
+						"description": "Identifier of source node, where edge is outgoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeToId",
+						"in": "path",
+						"description": "Identifier of destination node, where edge is ingoing.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"in_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"out_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"delay": {
+									"type": "string",
+									"example": "10"
+								},
+								"dispersion": {
+									"type": "string",
+									"example": "10"
+								},
+								"loss": {
+									"type": "string",
+									"example": "0.05"
+								},
+								"corrupt": {
+									"type": "string",
+									"example": "0.01"
+								},
+								"duplicate": {
+									"type": "string",
+									"example": "0.05"
+								},
+								"reorder": {
+									"type": "string",
+									"example": "0.1"
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Edge manipulated."
+					}
+				}
+			}
+		},
+		"/assign/tc-config/doc/{docId}/node/{nodeId}": {
+			"get": {
+				"tags": [
+					"tc-config"
+				],
+				"description": "Live manipulation: Get Tc-Configs of Node Agent by Id.",
+				"operationId": "get_node_tcConfigs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "TC configuration retrieved."
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"tc-config"
+				],
+				"description": "Live manipulation: set Tc-Configs of Node Agent by Id.",
+				"operationId": "set_node_tcConfigs",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"properties": {
+								"out_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"in_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"rules": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"dst_net": {
+												"type": "string"
+											},
+											"out_rate": {
+												"type": "string",
+												"example": "1000000"
+											},
+											"delay": {
+												"type": "string",
+												"example": "10"
+											},
+											"dispersion": {
+												"type": "string",
+												"example": "10"
+											},
+											"loss": {
+												"type": "string",
+												"example": "0.05"
+											},
+											"corrupt": {
+												"type": "string",
+												"example": "0.01"
+											},
+											"duplicate": {
+												"type": "string",
+												"example": "0.05"
+											},
+											"reorder": {
+												"type": "string",
+												"example": "0.1"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "TC configuration updated."
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"tc-config"
+				],
+				"description": "Live manipulation: edit Tc-Configs of Node Agent by Id.",
+				"operationId": "edit_node_tcConfigs",
+				"produces": [
+					"application/json"
+				],
+				"consumes": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "List of key-value pairs of properties.",
+						"required": true,
+						"schema": {
+							"type": "object",
+							"required": [
+								"rules"
+							],
+							"properties": {
+								"out_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"in_rate": {
+									"type": "string",
+									"example": "1000000"
+								},
+								"rules": {
+									"type": "array",
+									"items": {
+										"type": "object",
+										"properties": {
+											"dst_net": {
+												"type": "string"
+											},
+											"out_rate": {
+												"type": "string",
+												"example": "1000000"
+											},
+											"delay": {
+												"type": "string",
+												"example": "10"
+											},
+											"dispersion": {
+												"type": "string",
+												"example": "10"
+											},
+											"loss": {
+												"type": "string",
+												"example": "0.05"
+											},
+											"corrupt": {
+												"type": "string",
+												"example": "0.01"
+											},
+											"duplicate": {
+												"type": "string",
+												"example": "0.05"
+											},
+											"reorder": {
+												"type": "string",
+												"example": "0.1"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "TC configuration updated."
+					},
+					"400": {
+						"description": "Update not possible. Please start TC first."
+					},
+					"500": {
+						"description": "TC update was not successfull."
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"tc-config"
+				],
+				"description": "Live manipulation: Delete TcConfigs of Node Agent by Id.",
+				"operationId": "delete_node_TcConfigs",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "TC stopped."
+					},
+					"500": {
+						"description": "TC has not been stopped."
+					}
+				}
+			}
+		},
+		"/assign/firewall/doc/{docId}/node/{nodeId}": {
+			"get": {
+				"tags": [
+					"firewall"
+				],
+				"description": "Live manipulation: Get Firewall of Node Agent by Id.",
+				"operationId": "get_node_firewall",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Firewall configuration retrieved.",
+						"schema": {
+							"$ref": "#/definitions/Firewall"
+						}
+					},
+					"201": {
+						"description": "Firewall is not running."
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"firewall"
+				],
+				"description": "Live manipulation: Set Firewall of Node Agent by Id.",
+				"operationId": "set_node_firewall",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "Key-value pair of firewall.",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/Firewall"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Firewall initialized."
+					},
+					"500": {
+						"description": "Firewall was not started."
+					}
+				}
+			},
+			"put": {
+				"tags": [
+					"firewall"
+				],
+				"description": "Live manipulation: Edit Firewall of Node Agent by Id.",
+				"operationId": "edit_node_firewall",
+				"consumes": [
+					"application/json"
+				],
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"in": "body",
+						"name": "body",
+						"description": "Key-value pair of firewall.",
+						"required": true,
+						"schema": {
+							"$ref": "#/definitions/Firewall"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Firewall configuration updated."
+					},
+					"400": {
+						"description": "Update not possible. Please start Firewall first."
+					},
+					"500": {
+						"description": "Firewall update was not successfull."
+					}
+				}
+			},
+			"delete": {
+				"tags": [
+					"firewall"
+				],
+				"description": "Live manipulation: Edit Firewall of Node Agent by Id.",
+				"operationId": "edit_node_firewall",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+						"name": "docId",
+						"in": "path",
+						"description": "Identifier of current Document.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					},
+					{
+						"name": "nodeId",
+						"in": "path",
+						"description": "Identifier of node.",
+						"required": true,
+						"type": "integer",
+						"format": "int64"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Firewall stopped."
+					},
+					"500": {
+						"description": "Firewall has not been stopped."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/savestate": {
+			"post": {
+				"tags": [
+					"versioning"
+				],
+				"description": "Save state of the current document. Returns a newly cloned doc, where the document with the old docId remains head.",
+				"operationId": "save_state",
+				"produces": [
+					"application/json"
+				],
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Document state saved."
+					},
+					"400": {
+						"description": "Didn't find doc."
+					},
+					"500": {
+						"description": "Internal Server Error."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/erase": {
+			"delete": {
+				"tags": [
+					"versioning"
+				],
+				"description": "delete current doc with docId",
+				"operationId": "erase_doc",
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Document state saved."
+					},
+					"400": {
+						"description": "Didn't find doc."
+					},
+					"500": {
+						"description": "Internal Server Error."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/prune": {
+			"delete": {
+				"tags": [
+					"versioning"
+				],
+				"description": "delete every doc revision behind current doc with docId",
+				"operationId": "prune_doc",
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Document state saved."
+					},
+					"400": {
+						"description": "Didn't find doc."
+					},
+					"500": {
+						"description": "Internal Server Error."
+					}
+				}
+			}
+		},
+		"/doc/{docId}/eraseprune": {
+			"delete": {
+				"tags": [
+					"versioning"
+				],
+				"description": "execute erase and prune.",
+				"operationId": "erase_prune_doc",
+				"parameters": [{
+					"name": "docId",
+					"in": "path",
+					"description": "Identifier of current Document.",
+					"required": true,
+					"type": "integer",
+					"format": "int64"
+				}],
+				"responses": {
+					"200": {
+						"description": "Document state saved."
+					},
+					"400": {
+						"description": "Didn't find doc."
+					},
+					"500": {
+						"description": "Internal Server Error."
+					}
+				}
+			}
+		},
+		
+		"definitions": {
+			"ModelEdge": {
+				"type": "object",
+				"properties": {
+					"startNodeId": {
+						"type": "object",
+						"required": [
+							"delay"
+						],
+						"properties": {
+							"in_rate": {
+								"type": "string",
+								"example": "1000000"
+							},
+							"out_rate": {
+								"type": "string",
+								"example": "1000000"
+							},
+							"delay": {
+								"type": "string",
+								"example": "10"
+							},
+							"dispersion": {
+								"type": "string",
+								"example": "10"
+							},
+							"loss": {
+								"type": "string",
+								"example": "0.05"
+							},
+							"corrupt": {
+								"type": "string",
+								"example": "0.01"
+							},
+							"duplicate": {
+								"type": "string",
+								"example": "0.05"
+							},
+							"reorder": {
+								"type": "string",
+								"example": "0.1"
+							},
+							"addr": {
+								"type": "string"
+							},
+							"OS-EXT-IPS:type": {
+								"type": "string",
+								"example": "fixed"
+							}
+						}
+					}
+				}
+			},
+			"OpenStackConfig": {
+				"type": "object",
+				"properties": {
+					"ssh_key_name": {
+						"type": "string",
+						"example": "key"
+					},
+					"external_network": {
+						"type": "string",
+						"example": "tu-internal"
+					},
+					"auth_url": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string",
+						"example": "userName"
+					},
+					"password": {
+						"type": "string",
+						"example": "XXXXXXXX"
+					},
+					"project_name": {
+						"type": "string",
+						"example": "MockFog"
+					}
+				}
+			},
+			"AWSConfig": {
+				"type": "object",
+				"required": [
+					"ssh_key_name"
+				],
+				"properties": {
+					"ec2_access_key": {
+						"type": "string",
+						"example": "XXXXXXXX"
+					},
+					"ec2_secret_access_key": {
+						"type": "string",
+						"example": "XXXXXXXX"
+					},
+					"ec2_region": {
+						"type": "string",
+						"example": "eu-central-1"
+					},
+					"ssh_key_name": {
+						"type": "string",
+						"example": "key"
+					},
+					"ssh_user": {
+						"type": "string",
+						"example": "ec2-user"
+					}
+				}
+			},
+			"ResponseAnsible": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"NOT_STARTED",
+							"STARTED",
+							"PARSING_DHCP",
+							"PARSED_DHCP",
+							"PROPAGATING",
+							"PROPAGATED",
+							"GENERATING_YML",
+							"GENERATED_YML",
+							"PROCESSING",
+							"DONE"
+						]
+					},
+					"msg": {
+						"type": "string",
+						"example": "Setup is still in setup process. Not done yet. Please wait."
+					}
+				}
+			},
+			"Firewall": {
+				"type": "object",
+				"properties": {
+					"active": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ModelVertex": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "object",
+						"required": [
+							"name"
+						],
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"addr": {
+								"type": "string"
+							},
+							"edgesBack": {
+								"$ref": "#/definitions/ModelEdge"
+							}
+						}
+					}
+				}
+			},
+			"ModelNode": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "object",
+						"required": [
+							"name"
+						],
+						"properties": {
+							"flavor": {
+								"type": "string",
+								"enum": [
+									"Raspberry Pi 2 Model B",
+									"Raspberry Pi 3 Model B",
+									"Raspberry Pi 3 Model B+",
+									"BeagleBone Black",
+									"BeagleBone",
+									"BeagleBone Black",
+									"Banana Pi",
+									"Banana Pi M3",
+									"Arduino Tre",
+									"Arduino Intel Galileo",
+									"Nebbiolo fogNode Series"
+								]
+							},
+							"image": {
+								"type": "string",
+								"enum": [
+									"ubuntu-16.04"
+								]
+							},
+							"addr": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							},
+							"edgesBack": {
+								"$ref": "#/definitions/ModelEdge"
+							}
+						}
+					}
+				}
+			},
+			"ModelGraph": {
+				"type": "object",
+				"required": [
+					"docName"
+				],
+				"properties": {
+					"docName": {
+						"type": "string",
+						"example": "New Document"
+					},
+					"name": {
+						"type": "string"
+					},
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"allNets": {
+						"$ref": "#/definitions/ModelVertex"
+					},
+					"allNodes": {
+						"$ref": "#/definitions/ModelNode"
+					},
+					"props": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}

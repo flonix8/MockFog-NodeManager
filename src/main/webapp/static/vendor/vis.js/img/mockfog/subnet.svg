@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 160" width="128" height="160">
+  <defs/>
+  <metadata> Produced by OmniGraffle 7.7 
+    <dc:date>2018-05-28 16:48:40 +0000</dc:date>
+  </metadata>
+  <g id="Arbeitsfl_che_1" fill-opacity="1" stroke-dasharray="none" stroke="none" stroke-opacity="1" fill="none">
+    <title>Canvas 1</title>
+    <g id="Arbeitsfl_che_1: Layer 1">
+      <title>Layer 1</title>
+      <g id="Group_93">
+        <g id="Group_94">
+          <g id="Group_111">
+            <g id="Group_112">
+              <g id="Group_113">
+                <g id="Line_115">
+                  <line x1="21.1" y1="80" x2="53.7" y2="80" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+                <g id="Line_114">
+                  <path d="M 44.3 70.3 L 53.9 79.9 L 44 89.7" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g id="Group_106">
+            <g id="Group_107">
+              <g id="Group_108">
+                <g id="Line_110">
+                  <line x1="64" y1="86.7" x2="64" y2="119.3" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+                <g id="Line_109">
+                  <path d="M 54.3 109.9 L 63.9 119.5 L 73.7 109.6" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g id="Group_101">
+            <g id="Group_102">
+              <g id="Group_103">
+                <g id="Line_105">
+                  <line x1="106.9" y1="80" x2="74.3" y2="80" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+                <g id="Line_104">
+                  <path d="M 83.7 89.7 L 74.1 80.1 L 84 70.3" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+              </g>
+            </g>
+          </g>
+          <g id="Group_96">
+            <g id="Group_97">
+              <g id="Group_98">
+                <g id="Line_100">
+                  <line x1="64" y1="73.3" x2="64" y2="40.7" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+                <g id="Line_99">
+                  <path d="M 73.7 50.1 L 64.1 40.5 L 54.3 50.4" stroke="black" stroke-linecap="butt" stroke-linejoin="round" stroke-width="5"/>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

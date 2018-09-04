@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+    
+    <title>Nodemanager Admin</title>
+    
+    <link rel="stylesheet" href="./css/styles.css">
+    
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+
+    
+    
+</head>
+<body class="sidebar-fixed header-fixed sidebar-hidden">
+<script>
+            var url = "http://" + window.location.hostname + ":5001";
+            function execEndpoint(mode) {
+               
+               document.getElementsByName('responseFrame')[0].src = url + mode;
+            }
+</script>
+<div class="page-wrapper">
+    
+  <div class="content">
+     <div class="container-fluid">
+         <h1> Nodemanager Admin</h1>		
+         <div class="row " align="left">
+            <div id="adminOptions" style="margin-top:30px;margin-left:80px">
+               
+              <button class="btn btn-primary" onclick = "execEndpoint('/status')"
+                     <i class="fas fa-rocket"></i> Show running service
+              </button>
+              
+              <button class="btn btn-primary" onclick = "execEndpoint('/restart/neo4j')"
+                     <i class="fas fa-rocket"></i> restart service: neo4j
+              </button>
+              <button class="btn btn-primary" onclick = "execEndpoint('/restart/nginx')"
+                     <i class="fas fa-rocket"></i> restart service: nginx
+              </button>
+              
+              <button class="btn btn-primary" onclick = "execEndpoint('/restart/swagger')"
+                     <i class="fas fa-rocket"></i> restart service: swagger
+              </button>
+              
+              <button id="show-iframe-ping-all" class="btn btn-primary" onclick = "execEndpoint('/restartNM')"
+                     <i class="fas fa-rocket"></i> restart Nodemanager
+              </button>
+
+            </div>
+ 
+         </div>
+         <div style="margin-top:30px">
+               <iframe id = "pingFrameID" name = "responseFrame" style="height: 400px; width: 100%; border-width:1px" ></iframe>
+         </div>
+     </div>
+    
+   </div>
+</div>
+
+</body>
+</html>

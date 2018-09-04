@@ -1,0 +1,11 @@
+---
+openstack:
+  auth:
+    auth_url:
+    username:
+    password:
+    project_name:
+external_network:
+mgmt_network_name:
+ssh_key_name: null
+ssh_user: null
