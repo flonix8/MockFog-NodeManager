@@ -84,7 +84,6 @@
                                                   <div class="text-center bs-wizard-stepnum">Log in to cloud</div>
                                                   <div class="progress"><div class="progress-bar"></div></div>
                                                   <a href="" class="bs-wizard-dot"></a>
-                                                  <!--div class="bs-wizard-info text-center">Elias</div-->
                                                 </div>
 
                                                 <div class="col bs-wizard-step disabled" id="step-define">
@@ -141,6 +140,17 @@
                                             i++;
                                         });
                                     }
+
+			      	    function fillWithDefaultLoginAWS() {
+                                        var defaultCredentials = ['', '', 'eu-west-1', 'mockfog.pem', 'ec2-user'];
+                                        var inputFields = ['ec2_access_key', 'ec2_secret_access_key', 'ec2_region', 'ssh_key_name', 'ssh_user'];
+
+                                        var i = 0;
+                                        defaultCredentials.forEach(function (entry) {
+                                            $('#' + inputFields[i]).val(entry);
+                                            i++;
+                                        });
+                                    }
                                 </script>
 
                                 <button class="btn btn-dark" id="default-login" onclick="fillWithDefaultLogin()"
@@ -148,12 +158,18 @@
                                     <i class="fas fa-address-book"></i>
                                 </button>
 
+			  	<button class="btn btn-dark" id="default-loginAWS" onclick="fillWithDefaultLoginAWS()"
+                                        data-toggle="tooltip" data-placement="right" title="Fill with default data for AWS.">
+                                    <i class="fas fa-address-book"></i>
+                                </button>
+
+
                                 <script>
                                     var iaasProviderIsOpenStack = true;
 
                                     $('#iaas-provider').on('change', function () {
                                         iaasProviderIsOpenStack = !iaasProviderIsOpenStack;
-                                        // console.log(iaasProviderIsOpenStack);
+                                        console.log("Provider is OpenStack" + iaasProviderIsOpenStack);
 
                                         if (iaasProviderIsOpenStack) {
                                             $('#row-openstack').show();
@@ -163,6 +179,7 @@
                                             $('#save-credentials-button').show();
 
                                             $('#default-login').show();
+					    $('#default-loginAWS').hide();
                                         } else {
                                             $('#row-openstack').hide();
                                             $('#row-aws').show();
@@ -171,6 +188,7 @@
                                             $('#save-credentials-button').hide();
 
                                             $('#default-login').hide();
+					    $('#default-loginAWS').show();
                                         }
 
                                         $('#login-error-message').hide();
@@ -303,6 +321,7 @@
                             <script>
                                 $('#row-aws').hide();
                                 $('#save-credentials-button-aws').hide();
+				$('#default-loginAWS').hide();
                             </script>
                         </div>
                         <div class="row" id="log-row" style="display: none;">
