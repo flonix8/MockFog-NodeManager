@@ -10,6 +10,9 @@ __pycache__/
 # C extensions
 *.so
 
+#Idea project
+.idea
+
 # Distribution / packaging
 .Python
 env/
@@ -109,3 +112,4 @@ openrc.sh
 
 # Ansible
 *.retry
+/graph-service.iml

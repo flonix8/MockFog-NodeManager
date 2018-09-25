@@ -1,5 +1,8 @@
 package de.tub.mcc.fogmock.nodemanager.graphserv;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +16,7 @@ public class InfrastructureController {
     ArrayList<String> currentLog = new ArrayList<>();
     String currentPlatform = null;
     String currentPlaybook = null;
+    private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
 
     public static InfrastructureController getInstance () throws IOException {
         if (InfrastructureController.instance == null) {
@@ -81,14 +85,15 @@ public class InfrastructureController {
                         String[] commands = {"ansible-playbook", ("/opt/MFog-IaC/" + currentPlatform), "--tags", currentPlaybook };
                         runCommands(commands, true); }
                     catch (Exception e) {
-                        System.out.println("Error with ansible inside it's Thread!");
+                        logger.error("Error with ansible inside it's Thread!: ", e);
                     }
                 }
             });
             thread.start();
         }
         catch (Exception e) {
-            return "Error with ansible!";
+            logger.error("Error with ansible!: ", e);
+            return "";
         }
         return successfulReturnMessage;
     }
@@ -124,13 +129,14 @@ public class InfrastructureController {
             String line;
             while ((line = in.readLine()) != null) {
                 if (line.contains("ERROR")) {
+
                     System.out.println("Error runnning command: " + command + "!");
                     break;
                 }
             }
             in.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while cloning respository: ", e);
         }
     }
 
@@ -146,7 +152,7 @@ public class InfrastructureController {
         try {
             process = Runtime.getRuntime().exec(command);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while running " + command, e);
         }
         if (printOutputToConsole)
             printOutputToConsole(process);
@@ -164,7 +170,7 @@ public class InfrastructureController {
         try {
             process = Runtime.getRuntime().exec(commands);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while running commands (" + commands.length + "): ", e);
         }
         if (printOutputToConsole)
             printOutputToConsole(process);

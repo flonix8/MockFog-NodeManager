@@ -49,6 +49,8 @@ import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.server.web.WebServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class serves all the REST functionality concerning graph manipulation.
@@ -57,6 +59,8 @@ import org.neo4j.server.web.WebServer;
 public class ServiceUserInterface extends ServiceCommon {
 
 	private static Server jetty;
+
+    private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
 
 	ServicePropertyInjector propertyInjectorService;
 
@@ -122,7 +126,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @GET
     @Path("{file:(?i).+\\.(png|jpg|jpeg|svg|gif|html?|js|css|txt|grass|ttf|woff2|woff|eot)(\\?.*)?}")
     public Response file(@PathParam("file") String filePath) throws IOException {
-        System.out.println("file: "+filePath);
+        logger.info("file: "+filePath);
         InputStream fileStream = getClass().getResourceAsStream("/static/"+filePath);
         if (fileStream == null) return Response.status(Response.Status.NOT_FOUND).build();
         else return Response.ok(fileStream, mediaType(filePath)).build();
@@ -169,7 +173,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @Path("/doc/trees")
     @POST
     public Response createDocTrees( ModelDocTree[] docTrees) {
-        System.out.println("Reveived object...");
+        logger.info("Reveived object...");
         /*
          * insert whole doc tree
          */
@@ -189,7 +193,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (ExceptionInvalidData e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while creating doc trees", e);
             return Response.status(500).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         }
 
@@ -208,7 +212,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @POST
     public Response createDoc( ModelDoc modelDoc) {
         Map<String, Object> docMap = objectMapper.convertValue(modelDoc, Map.class);
-        System.out.println("Reveived object:\n" + docMap);
+        logger.info("Reveived object:\n" + docMap);
         /*
          * insert whole doc
          */
@@ -227,7 +231,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (ExceptionInvalidData e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while creating doc", e);
             return Response.status(500).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         }
 
@@ -353,9 +357,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while getting rate by flavor", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("ParseException while getting rate by flavor", e);
         }
         return rate; //default
     }
@@ -408,7 +412,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (org.neo4j.graphdb.NotFoundException e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while deleting doc:", e);
             return Response.status(500).build();
         }
 
@@ -423,7 +427,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @Path("/deleteDocs")
     @DELETE
     public Response deleteDocs( Long[] docIds ) {
-        System.out.println("Received docIds to delete: "+Arrays.toString(docIds));
+        logger.info("Received docIds to delete: "+Arrays.toString(docIds));
 
         for (Long curDocId : docIds) {
             if ( curDocId.equals(docIdStatic) ) {
@@ -456,7 +460,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (org.neo4j.graphdb.NotFoundException e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while deleting docs:", e);
             return Response.status(500).build();
         }
 
@@ -506,7 +510,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (NotFoundException e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing doc:", e);
             return Response.status(500).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         }
 
@@ -561,7 +565,7 @@ public class ServiceUserInterface extends ServiceCommon {
     private Response createVertex(Long docId, ModelVertex modelV, String label) {
         Map<String, Object> vMap = objectMapper.convertValue(modelV, Map.class);
         vMap.put("docId", docId);
-        System.out.println("Reveived object:\n" + vMap);
+        logger.info("Reveived object:\n" + vMap);
 
         /*
          * execute vertex creation (inkl. edgesBack if provided)
@@ -594,7 +598,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while creating vertex:", e);
             return Response.status(500).build();
         }
 
@@ -675,7 +679,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (ExceptionInvalidData e) {
             return Response.status(400).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while creating edge:", e);
             return Response.status(500).build();
         }
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
@@ -706,7 +710,7 @@ public class ServiceUserInterface extends ServiceCommon {
             }
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while checking id net:", e);
         }
         return isRight;
     }
@@ -748,7 +752,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting edge by id:", e);
             return Response.status(500).build();
         }
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
@@ -771,7 +775,7 @@ public class ServiceUserInterface extends ServiceCommon {
     public Response editEdge(@PathParam("docId") final Long docId, @PathParam("fromId") final Long fromId, @PathParam("toId") final Long toId, ModelEdge modelE) {
         Map<String, Object> eMap = objectMapper.convertValue(modelE, Map.class);
         Map<String, Object> props = (Map<String, Object>) eMap.get("props");
-        System.out.println("Reveived edge:\n" + eMap);
+        logger.info("Reveived edge:\n" + eMap);
 
 
         StringWriter sw = new StringWriter();
@@ -815,12 +819,12 @@ public class ServiceUserInterface extends ServiceCommon {
             jg.close();
 
             tx.success();
-            System.out.println(sw.toString());
+            logger.info(sw.toString());
             return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
         } catch (ExceptionInvalidData e) {
             return Response.status(400).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing edge:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 
@@ -881,7 +885,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (ExceptionInvalidData e) {
             return Response.status(400).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while deleting edge:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 
@@ -914,7 +918,7 @@ public class ServiceUserInterface extends ServiceCommon {
                     " DELETE r1, r, n " +
                     " ", params );
             if ( result.getQueryStatistics().getNodesDeleted() != 1) {
-                System.out.println("Nodes deleted: " + result.getQueryStatistics().getNodesDeleted());
+                logger.info("Nodes deleted: " + result.getQueryStatistics().getNodesDeleted());
                 return Response.status(400).entity( "illegal document reference" ).type( MediaType.TEXT_PLAIN ).build();
             }
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
@@ -926,7 +930,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (NotFoundException e) {
             return Response.status(400).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while deleting vertex:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 //        return Response.ok().entity(sw.toString()).type(MediaType.APPLICATION_JSON).build();
@@ -943,7 +947,7 @@ public class ServiceUserInterface extends ServiceCommon {
 	@DELETE
 	public Response deleteVertices( @PathParam("docId") final Long docId, final Long[] message ) {
 		final Map<String, Object> params = MapUtil.map("docId", docId, "delIds", message);
-		System.out.println(Arrays.toString(message));
+        logger.info(Arrays.toString(message));
         /*
          * execute deletion
          */
@@ -971,7 +975,7 @@ public class ServiceUserInterface extends ServiceCommon {
             	return Response.notModified().build();
             }
 	    } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while deleting vertices:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
 	    }
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
@@ -997,7 +1001,7 @@ public class ServiceUserInterface extends ServiceCommon {
 	@Path("/doc/{action:deep|shallow}")
 	@GET
     public Response getDocs(@PathParam("action") final String action) {
-        System.out.println("Query: get all docs");
+        logger.info("Query: get all docs");
         StringWriter sw = new StringWriter();
         try (Transaction tx = db.beginTx()) {
             ResourceIterator<Node> d = db.execute("MATCH (d:DOC) WHERE not ()-[:REVISION]->(d) RETURN d").columnAs("d");
@@ -1017,7 +1021,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch(NotFoundException e){
             return Response.status(404).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         } catch(Exception e){
-            e.printStackTrace();
+            logger.error("Exception while getting docs:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 
@@ -1066,7 +1070,7 @@ public class ServiceUserInterface extends ServiceCommon {
 		} catch (NotFoundException e) {
 			return Response.status(404).entity( e.getMessage() ).type( MediaType.TEXT_PLAIN ).build();
 		} catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting doc by id:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 
@@ -1133,7 +1137,7 @@ public class ServiceUserInterface extends ServiceCommon {
             jg.close();
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting vertex by id:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
@@ -1211,7 +1215,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing vertex:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
         }
 
@@ -1260,7 +1264,7 @@ public class ServiceUserInterface extends ServiceCommon {
             jg.close();
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while iniotial propagation:", e);
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_PROPAGATED);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type(MediaType.APPLICATION_JSON).build();
         }
@@ -1270,7 +1274,7 @@ public class ServiceUserInterface extends ServiceCommon {
         }
 
         String result = sw.toString();
-        System.out.println("Initial propagation result:\n"+result+"\n\n");
+        logger.info("Initial propagation result:\n"+result+"\n\n");
         return Response.ok().entity(result).type(MediaType.APPLICATION_JSON).build();
     }
 
@@ -1293,7 +1297,7 @@ public class ServiceUserInterface extends ServiceCommon {
         if (!checked.equals("")){
             return Response.status(400).entity(buildJsonMessage(checked)).type(MediaType.APPLICATION_JSON).build();
         }
-        System.out.println("All config values inserted! ");
+        logger.info("All config values inserted! ");
 
         return writeYmlOsToFile(openStackConfig);
     }
@@ -1370,10 +1374,10 @@ public class ServiceUserInterface extends ServiceCommon {
             return Response.ok().entity(getYmlConfigOsFromFileAsJson()).type(MediaType.APPLICATION_JSON).build();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while writing yml to file:", e);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while writing yml to file:", e);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         }
     }
@@ -1415,7 +1419,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 if (openStackConfig.getProjectName().equals("") || openStackConfig.getProjectName()==null) {
                     missingParams += "Project name ";
                 }
-                System.out.println(missingParams);
+                logger.info(missingParams);
                 responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_GENERATED_YML);
             }
         } catch (NullPointerException n){
@@ -1452,7 +1456,7 @@ public class ServiceUserInterface extends ServiceCommon {
             return writeYmlOsToFile(configFromFile);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while editing yml config:", e);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type(MediaType.APPLICATION_JSON).build();
         }
     }
@@ -1478,7 +1482,7 @@ public class ServiceUserInterface extends ServiceCommon {
         if (!checked.equals("")){
             return Response.status(400).entity(buildJsonMessage(checked)).type(MediaType.APPLICATION_JSON).build();
         }
-        System.out.println("All config values inserted! ");
+        logger.info("All config values inserted! ");
 
         return writeYmlAWSToFile(awsConfig);
     }
@@ -1533,7 +1537,7 @@ public class ServiceUserInterface extends ServiceCommon {
             return Response.ok().entity(getYmlConfigAWSFromFileAsJson()).type(MediaType.APPLICATION_JSON).build();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while writing yml to file:", e);
             return Response.status(500).entity(e.getMessage()).type( MediaType.APPLICATION_JSON ).build();
         }
     }
@@ -1572,7 +1576,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 if (awsConfig.getSshUser().equals("") || awsConfig.getSshUser() == null) {
                     missingParams += "Ssh User ";
                 }
-                System.out.println(missingParams);
+                logger.info(missingParams);
                 responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_GENERATED_YML);
             }
         } catch (NullPointerException n){
@@ -1607,7 +1611,7 @@ public class ServiceUserInterface extends ServiceCommon {
             return writeYmlAWSToFile(configFromFile);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while editing yml aws config:", e);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type(MediaType.APPLICATION_JSON).build();
         }
     }
@@ -1624,7 +1628,7 @@ public class ServiceUserInterface extends ServiceCommon {
         try {
             return Response.ok().entity(getYmlConfigAWSFromFileAsJson()).type(MediaType.APPLICATION_JSON).build();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while loading aws yml", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.APPLICATION_JSON).build();
         }
     }
@@ -1640,7 +1644,7 @@ public class ServiceUserInterface extends ServiceCommon {
         try {
             return Response.ok().entity(getYmlConfigOsFromFileAsJson()).type(MediaType.APPLICATION_JSON).build();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while loading OS yml:", e);
             return Response.status(500).entity(e.getMessage()).type(MediaType.APPLICATION_JSON).build();
         }
     }
@@ -1663,7 +1667,7 @@ public class ServiceUserInterface extends ServiceCommon {
         objectMapper = new ObjectMapper(new JsonFactory());
         jsonString = objectMapper.writeValueAsString(response);
 
-        System.out.println(jsonString);
+        logger.info(jsonString);
 
         /*
         Openstack object instance initialising by setting external network as the same as in the current doc
@@ -1689,7 +1693,7 @@ public class ServiceUserInterface extends ServiceCommon {
         objectMapper = new ObjectMapper(new JsonFactory());
         jsonString = objectMapper.writeValueAsString(response);
 
-        System.out.println(jsonString);
+        logger.info(jsonString);
 
         return jsonString;
     }
@@ -1701,7 +1705,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @POST
     public Response parseDhcp( @PathParam("docId") final Long docId, Map<String, Object> dhcpMap ) {
         final Map<String, Object> params = MapUtil.map( "docId", docId, "dhcpMap", dhcpMap);
-        System.out.println("Reveived object:\n" + params);
+        logger.info("Reveived object:\n" + params);
 
         responseAnsible.setStatus(ResponseAnsible.Status.PARSING_DHCP);
         /*
@@ -1721,7 +1725,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while parsing DHCP:", e);
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_PARSED_DHCP);
             return Response.status(500).entity( buildJsonMessage(e.getMessage()) ).type( MediaType.APPLICATION_JSON ).build();
         }
@@ -1800,10 +1804,10 @@ public class ServiceUserInterface extends ServiceCommon {
         try {
             ansibleLog = InfrastructureController.getInstance().bootstrapSetup(true);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while bootstrapping test:", e);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         }
-        System.out.println(ansibleLog);
+        logger.info(ansibleLog);
 
         return Response
                 .ok()
@@ -1854,7 +1858,7 @@ public class ServiceUserInterface extends ServiceCommon {
             //TODO: uncomment before pushing
             responseAnsible.setStatus(ResponseAnsible.Status.BOOTSTRAPPING);
             ansibleLog = InfrastructureController.getInstance().bootstrapSetup(platform.equals("os"));
-            System.out.println(ansibleLog);
+            logger.info(ansibleLog);
 
             tx.success();
         } catch (ExceptionInvalidData e) {
@@ -1899,7 +1903,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
         try {
             ansibleLog = InfrastructureController.getInstance().destroySetup(platform.equals("os"));
-            System.out.println(ansibleLog);
+            logger.info(ansibleLog);
         }
         catch (Exception e) {
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_DESTROYED);
@@ -2161,7 +2165,7 @@ public class ServiceUserInterface extends ServiceCommon {
             //jg.close();
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting OS yml:", e);
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_GENERATED_YML);
             throw new ExceptionInternalServerError(e.getMessage());
         }
@@ -2302,7 +2306,7 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting AWS yml:", e);
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_GENERATED_YML);
             throw new ExceptionInternalServerError(e.getMessage());
         }
@@ -2426,7 +2430,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (org.neo4j.graphdb.NotFoundException e) {
             return Response.status(400).entity( buildJsonMessage("Unable to find doc with id "+docId) ).type( MediaType.APPLICATION_JSON ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while saving state:", e);
             return Response.status(500).entity( buildJsonMessage(e.getMessage()) ).type( MediaType.APPLICATION_JSON ).build();
         }
 
@@ -2474,7 +2478,7 @@ public class ServiceUserInterface extends ServiceCommon {
         } catch (org.neo4j.graphdb.NotFoundException e) {
             return Response.status(400).entity( buildJsonMessage("Unable to find find net or node with id "+srcId) ).type( MediaType.APPLICATION_JSON ).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting all shortest paths:", e);
             return Response.status(500).entity( buildJsonMessage(e.getMessage()) ).type( MediaType.APPLICATION_JSON ).build();
         }
 
@@ -2506,9 +2510,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while getting OS flavor from device:", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("ParseException while getting OS flavor from device:", e);
         }
         return flavor;
     }
@@ -2534,9 +2538,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while getting AWS flavor from device:", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("ParseException while getting AWS flavor from device:", e);
         }
         return flavor;
     }

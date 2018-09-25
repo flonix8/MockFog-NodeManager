@@ -21,6 +21,8 @@ import de.tub.mcc.fogmock.nodemanager.graphserv.ansible.ResponseAnsible;
 import de.tub.mcc.fogmock.nodemanager.graphserv.openstack.ResponseOpenstackConfig;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.MapUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -36,6 +38,7 @@ public class ServiceCommon {
     public static ResponseAnsible responseAnsible = new ResponseAnsible();
     public static ResponseOpenstackConfig openStackConfig = new ResponseOpenstackConfig();
     public static long docIdStatic = -1;
+    private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
     final Label CONFIG = Label.label( "CONFIG" );
     final Label DOC = Label.label( "DOC" );
 	final Label NET = Label.label( "NET" );
@@ -282,7 +285,7 @@ public class ServiceCommon {
              */
             ClientResponse resp = null;
             if (naMethod.toLowerCase().equals("post")) {
-                System.out.println(  "CALLING AGENT FIREWALL " + getBaseURI(ipMgmt, 5000).toString()  );
+                logger.info("CALLING AGENT FIREWALL " + getBaseURI(ipMgmt, 5000).toString());
                 resp = client.resource(getBaseURI(ipMgmt, 5000))
                         .path("api").path("firewall/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
                         .post(ClientResponse.class, MapUtil.map("active", true));
@@ -291,13 +294,13 @@ public class ServiceCommon {
                             " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
                 }
 
-                System.out.println(  "CALLING AGENT POST " + getBaseURI(ipMgmt, 5000).toString()  );
+                logger.info("CALLING AGENT POST " + getBaseURI(ipMgmt, 5000).toString());
                 resp = client.resource(getBaseURI(ipMgmt, 5000))
                         .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
                         .post(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
             }
             if (naMethod.toLowerCase().equals("put")) {
-                System.out.println(  "CALLING AGENT PUT " + getBaseURI(ipMgmt, 5000).toString()  );
+                logger.info("CALLING AGENT PUT " + getBaseURI(ipMgmt, 5000).toString());
                 resp = client.resource(getBaseURI(ipMgmt, 5000))
                         .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
                         .put(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
@@ -573,7 +576,7 @@ public class ServiceCommon {
             jg.writeString(message);
             jg.flush(); jg.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("IOException while building JSON message: ", e);
         }
         return sw.toString();
     }
