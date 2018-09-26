@@ -1,6 +1,7 @@
 var nodes = [];
 var edges = [];
 var network = null;
+var isOpenStack = true;
 
 var BLACK = '#2B1B17';
 
@@ -302,8 +303,8 @@ function onClickPlay() {
     document.getElementById("play-button").style = "display: none";
 
     // var iaasProviderIsOpenStack = document.getElementById("save-credentials-button-aws").getComputedStyle('display');
-    var iaasProviderIsOpenStack = isVisible(document.getElementById("save-credentials-button-aws"));
-    console.log(iaasProviderIsOpenStack);
+    var iaasProviderIsOpenStack = isOpenStack;
+    console.log("Provider is OpenStack: " + iaasProviderIsOpenStack);
 
     document.getElementById("log-row").style = "display: visible";
     document.getElementById("log-field-status").innerText = "Loading...";
@@ -426,6 +427,7 @@ function saveServerCredentials() {
     SERVER_CRED.password          = document.getElementById("password").value;
     SERVER_CRED.project_name      = document.getElementById("project_name").value;
     //console.log(SERVER_CRED);
+    isOpenStack=true;
     postYmlConfig(true); // true = iaasProviderIsOpenStack
 }
 
@@ -441,6 +443,7 @@ function saveAWSserverCredentials() {
     SERVER_CRED_AWS.ssh_key_name          = document.getElementById("ssh_key_name").value;
     SERVER_CRED_AWS.ssh_user              = document.getElementById("ssh_user").value;
     // console.log(SERVER_CRED_AWS);
+    isOpenStack=false;
     postYmlConfig(false); // false = iaasProviderIsOpenStack
 }
 
