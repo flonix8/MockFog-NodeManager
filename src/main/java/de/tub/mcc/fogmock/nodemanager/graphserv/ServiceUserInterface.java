@@ -2224,7 +2224,7 @@ public class ServiceUserInterface extends ServiceCommon {
             yg.writeString("mgmt_sub"); //mgmt_sub
             yg.writeFieldName("subnet");
 //            yg.writeString(mgmtNetAddr); //"196.168.100.0/24"
-            yg.writeString("196.168.100.0/24"); //"196.168.100.0/24"
+            yg.writeString("10.0.1.0/24"); //"196.168.100.0/24 (only works for OpenStack)"
             yg.writeEndObject();
             ri = db.execute("MATCH (d:DOC)-[r:CONTAIN]->(n:NET) WHERE ID(d)=$docId AND n._mask>0 AND n._mask<31 RETURN n", params ).columnAs("n");
             while ( ri.hasNext() ) {
