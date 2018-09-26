@@ -1,6 +1,6 @@
 {
     "Raspberry Pi 2 Model B" : {
-        "flavor" : "m3.small",
+        "flavor" : "t3.nano",
         "rate" : "100000"
     },
     "Raspberry Pi 3 Model B": {
