@@ -83,7 +83,7 @@ public class InfrastructureController {
             Thread thread = new Thread(new Runnable() {
                 public void run() {
                     try {
-                        String[] commands = {"ansible-playbook", ("/opt/MFog-IaC/" + currentPlatform), "--tags", currentPlaybook };
+                        String[] commands = {"ansible-playbook", ("/opt/MFog-IaC/" + currentPlatform), "--tags", currentPlaybook, "-vvv" };
                         runCommands(commands, true); }
                     catch (Exception e) {
                         logger.error("Error with ansible inside it's Thread!: ", e);
