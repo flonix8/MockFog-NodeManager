@@ -2350,16 +2350,16 @@ public class ServiceUserInterface extends ServiceCommon {
         String awsImage;
         //default image "ubuntu-16.04"
         if (image.equals("")){
-            return awsImage = "ami-e2526d09";
+            return awsImage = "ami-0bdb1d6c15a40392c";
         }
         /*
         other images can be set here
          */
         if (image.toLowerCase().contains("ubuntu")){
-            return awsImage = "ami-e2526d0";
+            return awsImage = "ami-0bdb1d6c15a40392c";
         }
         else {
-            return awsImage = "ami-e2526d0";
+            return awsImage = "ami-0bdb1d6c15a40392c";
         }
     }
 
