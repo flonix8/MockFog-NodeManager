@@ -55,6 +55,7 @@ public class InfrastructureController {
     public String bootstrapSetup (boolean platformIsOpenStack) {
         currentPlaybook = "bootstrap";
         currentPlatform = platformIsOpenStack ? "openstack.yml" : "aws.yml";
+        logger.info("Start bootstrapping with Ansible, platform is OpenStack=" + platformIsOpenStack);
         return startAnsiblePlaybook("[bootstrap] Ansible is bootstraping the infrastructure. Please wait until the network topology refreshes.");
     }
 

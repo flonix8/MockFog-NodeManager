@@ -1833,6 +1833,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response bootstrap( @PathParam("docId") final Long docId, @PathParam("platform") final String platform) throws IOException {
+        logger.info("Bootstrapping requested, docID is " + docId + ", plattform is " + platform);
         if (docIdStatic > -1) return Response.status(400)
                 .entity(buildJsonMessage("Document with id "+docIdStatic+" already instantiated"))
                 .type(MediaType.APPLICATION_JSON).build();
@@ -1854,7 +1855,7 @@ public class ServiceUserInterface extends ServiceCommon {
             checkAnsibleIntegrityNodeLinkedToMultipleNets(docId);
 
             yml = ( platform.equals("os") ? getYmlOS(docId) : getYmlAWS(docId) );
-
+            logger.info("yml is " + yml);
             //TODO: uncomment before pushing
             responseAnsible.setStatus(ResponseAnsible.Status.BOOTSTRAPPING);
             ansibleLog = InfrastructureController.getInstance().bootstrapSetup(platform.equals("os"));
