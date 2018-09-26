@@ -13,9 +13,11 @@ var SERVER_CRED_AWS = new Object();
  * in this content we create a new docid from the docname
  */
 function callDocPOST() {
+    var cidr = (isOpenStack ? "192.168.100.0/24" : "10.0.1.0/24");
+    console.log("CIDR is " + cidr);
     var requestJSON = new Object();
     requestJSON.name = DOCNAME;
-    requestJSON.addr = "192.168.100.0/24";
+    requestJSON.addr = cidr;
     $.ajax({
         url: BASE_URL + "doc",
         type: 'POST',
