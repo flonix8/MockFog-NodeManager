@@ -373,13 +373,11 @@ function exportAllDocs() {
 }
 
 function createNewDoc() {
-    var cidr = (isOpenStack ? "192.168.100.0/24" : "10.0.1.0/24");
-    console.log("CIDR is " + cidr);
     $.ajax({
         type: "POST",
         url: BASE_URL + "doc",
         dataType: "json",
-        data: JSON.stringify( { "addr" : cidr } ),
+        data: JSON.stringify( { "addrOS" : "192.168.100.0/24"} ),
         contentType: 'application/json;charset=utf-8',
         async: false,
         "success": function(data) {
