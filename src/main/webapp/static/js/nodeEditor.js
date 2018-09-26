@@ -311,7 +311,7 @@ function onClickPlay() {
 
     $.ajax({
         type: 'GET',
-        url: BASE_URL + 'doc/' + DOCID + '/bootstrap/' + (iaasProviderIsOpenStack ? "aws" : "os"),
+        url: BASE_URL + 'doc/' + DOCID + '/bootstrap/' + (iaasProviderIsOpenStack ? "os" : "aws"),
         contentType: 'application/json',
         success: function(data) {
             console.log(data);
