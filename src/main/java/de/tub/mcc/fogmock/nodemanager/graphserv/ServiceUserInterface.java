@@ -44,6 +44,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
@@ -124,7 +125,7 @@ public class ServiceUserInterface extends ServiceCommon {
      * @throws IOException
      */
     @GET
-    @Path("{file:(?i).+\\.(png|jpg|jpeg|svg|gif|html?|js|css|txt|grass|ttf|woff2|woff|eot)(\\?.*)?}")
+    @Path("{file:(?i).+\\.(png|jpg|jpeg|svg|gif|html?|js|json|css|txt|grass|ttf|woff2|woff|eot)(\\?.*)?}")
     public Response file(@PathParam("file") String filePath) throws IOException {
         logger.info("file: "+filePath);
         InputStream fileStream = getClass().getResourceAsStream("/static/"+filePath);
@@ -321,14 +322,19 @@ public class ServiceUserInterface extends ServiceCommon {
      * @param endNode the node with a special flavor for which the rates have to be set respectively
      * @throws ExceptionInvalidData
      */
-    public void setMaxRatesByFlavor(Node endNode) throws ExceptionInvalidData {
+    public void setMaxRatesByFlavor(Node endNode, boolean openStack) throws ExceptionInvalidData {
         if (endNode.hasLabel(NODE)){
             Iterable<Relationship> ingoing = endNode.getRelationships(Direction.INCOMING, LINK);
             String flavor = (String)endNode.getProperty("flavor");
 
             for (Relationship r : ingoing){
-                r.setProperty("in_rate", getRateByFlavorFile(flavor));
-                r.setProperty("out_rate", getRateByFlavorFile(flavor));
+                if (openStack) {
+                    r.setProperty("in_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_OS_FLAVORS));
+                    r.setProperty("out_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_OS_FLAVORS));
+                } else {
+                    r.setProperty("in_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_AWS_FLAVORS));
+                    r.setProperty("out_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_AWS_FLAVORS));
+                }
             }
         }
     }
@@ -339,12 +345,12 @@ public class ServiceUserInterface extends ServiceCommon {
      * @return the rate of the given device type
      * @throws ExceptionInvalidData
      */
-    public Long getRateByFlavorFile(String device) throws ExceptionInvalidData {
+    public Long getRateByFlavorFile(String device, String flavorFile) throws ExceptionInvalidData {
         Long rate = 1000000L; //all other devices (that are included) usually have 1000000 mbps
 
         JSONParser jsonParser = new JSONParser();
         try {
-            Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_OS_FLAVORS));
+            Object object = jsonParser.parse(new FileReader(flavorFile));
             JSONObject jsonObject = (JSONObject)object;
             if (jsonObject.containsKey(device)){
                 Object objectProps = jsonObject.get(device);
@@ -552,6 +558,11 @@ public class ServiceUserInterface extends ServiceCommon {
         if ( docId.equals(docIdStatic) ) {
             return Response.status(428).entity("illegal node addition after bootstrap").type(MediaType.TEXT_PLAIN).build();
         }
+        try {
+            node.setProps("icon", getIconFromDeviceFile((String) node.props.get("flavor"), Settings.PATH_TO_AWS_FLAVORS), "device_sm", Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$"));
+        } catch (ExceptionInvalidData exceptionInvalidData) {
+            logger.error("Invalid data:", exceptionInvalidData);
+        }
         return createVertex ( docId, node, "NODE");
     }
 
@@ -601,7 +612,6 @@ public class ServiceUserInterface extends ServiceCommon {
             logger.error("Exception while creating vertex:", e);
             return Response.status(500).build();
         }
-
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
     }
 
@@ -653,7 +663,9 @@ public class ServiceUserInterface extends ServiceCommon {
 
             Node nodeEnd = result.next();
             setNewNetIpOnIncomingLinks(nodeEnd);
-            setMaxRatesByFlavor(nodeEnd);
+            //Todo: if openStack => call with true
+            // if AWS => call with false
+            setMaxRatesByFlavor(nodeEnd, false);
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
             jg.writeStartObject();
             writeVertex(jg, nodeEnd);
@@ -2495,7 +2507,8 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getOSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
         String flavor = "";
-
+        int end = device.indexOf(" ");
+        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_OS_FLAVORS));
@@ -2526,7 +2539,8 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getAWSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
         String flavor = "";
-
+        int end = device.indexOf(" ");
+        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_AWS_FLAVORS));
@@ -2535,7 +2549,10 @@ public class ServiceUserInterface extends ServiceCommon {
                 Object objectProps = jsonObject.get(device);
                 JSONObject jsonProps = (JSONObject)objectProps;
                 flavor = (String)jsonProps.get("flavor");
-            } else {
+            } else if (device.equals("")){
+                flavor = (String)jsonObject.keySet().toArray()[8]; //
+            }
+            else {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
@@ -2544,5 +2561,36 @@ public class ServiceUserInterface extends ServiceCommon {
             logger.error("ParseException while getting AWS flavor from device:", e);
         }
         return flavor;
+    }
+
+    /** This method returns the icon for a specific edge device representation.
+     *
+     * @param device the device to be mapped to a icon
+     * @param mappingFile the mapping file
+     * @return icon name
+     * @throws ExceptionInvalidData
+     */
+    public String getIconFromDeviceFile (String device, String mappingFile) throws ExceptionInvalidData {
+        String icon = "";
+        JSONParser jsonParser = new JSONParser();
+        try {
+            Object object = jsonParser.parse(new FileReader(mappingFile));
+            JSONObject jsonObject = (JSONObject)object;
+            if (jsonObject.containsKey(device)){
+                Object objectProps = jsonObject.get(device);
+                JSONObject jsonProps = (JSONObject)objectProps;
+                icon = (String)jsonProps.get("flavor");
+            } else if (device.equals("")){
+                icon = (String)jsonObject.keySet().toArray()[8]; //
+            }
+            else {
+                throw new ExceptionInvalidData("Invalid Icon chosen. Please select one of " + jsonObject.keySet());
+            }
+        } catch (IOException e) {
+            logger.error("IOException while getting icon from device:", e);
+        } catch (ParseException e) {
+            logger.error("ParseException while getting icon from device:", e);
+        }
+        return icon;
     }
 }
