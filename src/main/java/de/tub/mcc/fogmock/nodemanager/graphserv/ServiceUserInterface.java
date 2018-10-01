@@ -321,14 +321,19 @@ public class ServiceUserInterface extends ServiceCommon {
      * @param endNode the node with a special flavor for which the rates have to be set respectively
      * @throws ExceptionInvalidData
      */
-    public void setMaxRatesByFlavor(Node endNode) throws ExceptionInvalidData {
+    public void setMaxRatesByFlavor(Node endNode, boolean openStack) throws ExceptionInvalidData {
         if (endNode.hasLabel(NODE)){
             Iterable<Relationship> ingoing = endNode.getRelationships(Direction.INCOMING, LINK);
             String flavor = (String)endNode.getProperty("flavor");
 
             for (Relationship r : ingoing){
-                r.setProperty("in_rate", getRateByFlavorFile(flavor));
-                r.setProperty("out_rate", getRateByFlavorFile(flavor));
+                if (openStack) {
+                    r.setProperty("in_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_OS_FLAVORS));
+                    r.setProperty("out_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_OS_FLAVORS));
+                } else {
+                    r.setProperty("in_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_AWS_FLAVORS));
+                    r.setProperty("out_rate", getRateByFlavorFile(flavor, Settings.PATH_TO_AWS_FLAVORS));
+                }
             }
         }
     }
@@ -339,12 +344,12 @@ public class ServiceUserInterface extends ServiceCommon {
      * @return the rate of the given device type
      * @throws ExceptionInvalidData
      */
-    public Long getRateByFlavorFile(String device) throws ExceptionInvalidData {
+    public Long getRateByFlavorFile(String device, String flavorFile) throws ExceptionInvalidData {
         Long rate = 1000000L; //all other devices (that are included) usually have 1000000 mbps
 
         JSONParser jsonParser = new JSONParser();
         try {
-            Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_OS_FLAVORS));
+            Object object = jsonParser.parse(new FileReader(flavorFile));
             JSONObject jsonObject = (JSONObject)object;
             if (jsonObject.containsKey(device)){
                 Object objectProps = jsonObject.get(device);
@@ -653,7 +658,9 @@ public class ServiceUserInterface extends ServiceCommon {
 
             Node nodeEnd = result.next();
             setNewNetIpOnIncomingLinks(nodeEnd);
-            setMaxRatesByFlavor(nodeEnd);
+            //Todo: if openStack => call with true
+            // if AWS => call with false
+            setMaxRatesByFlavor(nodeEnd, false);
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
             jg.writeStartObject();
             writeVertex(jg, nodeEnd);
@@ -2495,7 +2502,8 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getOSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
         String flavor = "";
-
+        int end = device.indexOf(" ");
+        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_OS_FLAVORS));
@@ -2526,7 +2534,8 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getAWSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
         String flavor = "";
-
+        int end = device.indexOf(" ");
+        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_AWS_FLAVORS));
@@ -2535,7 +2544,10 @@ public class ServiceUserInterface extends ServiceCommon {
                 Object objectProps = jsonObject.get(device);
                 JSONObject jsonProps = (JSONObject)objectProps;
                 flavor = (String)jsonProps.get("flavor");
-            } else {
+            } else if (device.equals("")){
+                flavor = (String)jsonObject.keySet().toArray()[8]; //
+            }
+            else {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
