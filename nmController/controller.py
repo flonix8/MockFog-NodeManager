@@ -4,6 +4,9 @@ import time
 import os
 import sys
 import json
+import render_template
+import url_for
+
 
 app = flask.Flask(__name__)
 
@@ -49,6 +52,12 @@ def pingAllNodes():
       stdout=subprocess.PIPE,stderr=subprocess.PIPE,
       universal_newlines=True)
    return flask.Response(pipeStd(proc), mimetype='text/html')
+
+@app.route("/mappingAWS")
+   def pingAllNodes():
+      file = "/opt/MockFog/NodeManager/files/aws_device_to_flavor_map.json"
+      data = json.load(open(file))
+      return flask.Response(data, mimetype='text/json')
 
 @app.route("/getAgentIPs")
 def getAgentIPs():
