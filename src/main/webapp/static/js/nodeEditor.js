@@ -447,6 +447,32 @@ function saveAWSserverCredentials() {
     postYmlConfig(false); // false = iaasProviderIsOpenStack
 }
 
+function callgetMappingAWS(){
+	var mappingURL = BASE_URL + "mappingAWS";
+	console.log(mappingURL);
+    $.ajax({		
+        url: mappingURL,
+        type: 'GET',
+		dataType: "json",
+        success: function(response) {
+            return response;
+        }, error: function(error)  {
+            console.log(error);
+            return error;
+        }
+    });
+}
+
+function fillFlavorOptionsAWS() {
+	callgetMappingAWS();
+	console.log("fill options...");
+	var selectbox = document.getElementById("instanceType");
+	var option = document.createElement("option");
+	option.text = "Kiwi";
+	selectbox.add(option); 
+	
+}
+
 function postYmlConfig(iaasProviderIsOpenStack) {
     var URL = BASE_URL + "yml-config";
     var CREDENTIALS;

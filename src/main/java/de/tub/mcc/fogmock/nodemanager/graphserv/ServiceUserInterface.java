@@ -124,7 +124,7 @@ public class ServiceUserInterface extends ServiceCommon {
      * @throws IOException
      */
     @GET
-    @Path("{file:(?i).+\\.(png|jpg|jpeg|svg|gif|html?|js|css|txt|grass|ttf|woff2|woff|eot)(\\?.*)?}")
+    @Path("{file:(?i).+\\.(png|jpg|jpeg|svg|gif|html?|js|json|css|txt|grass|ttf|woff2|woff|eot)(\\?.*)?}")
     public Response file(@PathParam("file") String filePath) throws IOException {
         logger.info("file: "+filePath);
         InputStream fileStream = getClass().getResourceAsStream("/static/"+filePath);

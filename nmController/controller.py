@@ -51,12 +51,6 @@ def pingAllNodes():
       universal_newlines=True)
    return flask.Response(pipeStd(proc), mimetype='text/html')
 
-@app.route("/mappingAWS")
-def listMappingAWS():
-      file = "/opt/MockFog/NodeManager/files/aws_device_to_flavor_map.json"
-      data = json.load(open(file))
-      return flask.jsonify(data)
-
 @app.route("/mappingOS")
 def listMappingOS():
     file = "/opt/MockFog/NodeManager/files/os_device_to_flavor_map.json"
