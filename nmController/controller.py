@@ -4,7 +4,6 @@ import time
 import os
 import sys
 import json
-import render_template
 import url_for
 
 
