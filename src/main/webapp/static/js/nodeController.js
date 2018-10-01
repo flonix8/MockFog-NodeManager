@@ -2,6 +2,7 @@ var hostIP = window.location.hostname;
 if (hostIP == "") {
     hostIP = "localhost";
 }
+var HOST_URL = "http://" + hostIP + "/";
 var BASE_URL = "http://" + hostIP + ":7474/webapi/"; // ../{docid}/subnet|node
 var DOCID;
 var DOCNAME = "mgmt";

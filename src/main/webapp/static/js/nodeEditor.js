@@ -447,30 +447,36 @@ function saveAWSserverCredentials() {
     postYmlConfig(false); // false = iaasProviderIsOpenStack
 }
 
-function callgetMappingAWS(){
-	var mappingURL = BASE_URL + "mappingAWS";
-	console.log(mappingURL);
+function fillFlavorOptionsAWS() {
+	var mappingURL = HOST_URL + "resources/aws_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptionsOS() {
+	var mappingURL = HOST_URL + "resources/os_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptions(mappingURL) {
     $.ajax({		
         url: mappingURL,
         type: 'GET',
+		async: false,
 		dataType: "json",
         success: function(response) {
-            return response;
+			var selectbox = document.getElementById("instanceType");
+			jQuery.each(response, function(device, properties) {
+				var option = document.createElement("option");
+				var flavor = properties.flavor;
+				option.text = device + " (" + flavor + ")";
+				selectbox.add(option);
+			});
+            return;
         }, error: function(error)  {
             console.log(error);
             return error;
         }
     });
-}
-
-function fillFlavorOptionsAWS() {
-	callgetMappingAWS();
-	console.log("fill options...");
-	var selectbox = document.getElementById("instanceType");
-	var option = document.createElement("option");
-	option.text = "Kiwi";
-	selectbox.add(option); 
-	
 }
 
 function postYmlConfig(iaasProviderIsOpenStack) {
