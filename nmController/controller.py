@@ -55,7 +55,13 @@ def pingAllNodes():
 def listMappingAWS():
       file = "/opt/MockFog/NodeManager/files/aws_device_to_flavor_map.json"
       data = json.load(open(file))
-      return flask.Response(data, mimetype='text/json')
+      return flask.jsonify(data)
+
+@app.route("/mappingOS")
+def listMappingOS():
+    file = "/opt/MockFog/NodeManager/files/os_device_to_flavor_map.json"
+    data = json.load(open(file))
+    return flask.jsonify(data)
 
 @app.route("/getAgentIPs")
 def getAgentIPs():
