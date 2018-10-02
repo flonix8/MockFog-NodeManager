@@ -90,10 +90,11 @@ function callNodePOST(inputdata){
         success: function(data){
             inputdata.id = Object.keys(data)[0];
             // draw the the node into the diagram
+            console.log(data):
             console.log(inputdata);
             // add the Node to vis.js
             // nodes.add({id:inputdata.id,group:inputdata.group,label:"undefined"});
-            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":inputdata.group,"label": l,"flavor":node.flavor,"image":inputdata.image,"name":node.name});
+            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":inputdata.icon,"label": l,"flavor":node.flavor,"image":inputdata.image,"name":node.name});
         },
         error: function(error)
         {

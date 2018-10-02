@@ -44,6 +44,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
@@ -557,6 +558,11 @@ public class ServiceUserInterface extends ServiceCommon {
         if ( docId.equals(docIdStatic) ) {
             return Response.status(428).entity("illegal node addition after bootstrap").type(MediaType.TEXT_PLAIN).build();
         }
+        try {
+            node.setProps("icon", getIconFromDeviceFile((String) node.props.get("flavor"), Settings.PATH_TO_AWS_FLAVORS), "device_sm", Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$"));
+        } catch (ExceptionInvalidData exceptionInvalidData) {
+            logger.error("Invalid data:", exceptionInvalidData);
+        }
         return createVertex ( docId, node, "NODE");
     }
 
@@ -606,7 +612,6 @@ public class ServiceUserInterface extends ServiceCommon {
             logger.error("Exception while creating vertex:", e);
             return Response.status(500).build();
         }
-
         return Response.ok().entity( sw.toString() ).type( MediaType.APPLICATION_JSON ).build();
     }
 
@@ -2556,5 +2561,36 @@ public class ServiceUserInterface extends ServiceCommon {
             logger.error("ParseException while getting AWS flavor from device:", e);
         }
         return flavor;
+    }
+
+    /** This method returns the icon for a specific edge device representation.
+     *
+     * @param device the device to be mapped to a icon
+     * @param mappingFile the mapping file
+     * @return icon name
+     * @throws ExceptionInvalidData
+     */
+    public String getIconFromDeviceFile (String device, String mappingFile) throws ExceptionInvalidData {
+        String icon = "";
+        JSONParser jsonParser = new JSONParser();
+        try {
+            Object object = jsonParser.parse(new FileReader(mappingFile));
+            JSONObject jsonObject = (JSONObject)object;
+            if (jsonObject.containsKey(device)){
+                Object objectProps = jsonObject.get(device);
+                JSONObject jsonProps = (JSONObject)objectProps;
+                icon = (String)jsonProps.get("flavor");
+            } else if (device.equals("")){
+                icon = (String)jsonObject.keySet().toArray()[8]; //
+            }
+            else {
+                throw new ExceptionInvalidData("Invalid Icon chosen. Please select one of " + jsonObject.keySet());
+            }
+        } catch (IOException e) {
+            logger.error("IOException while getting icon from device:", e);
+        } catch (ParseException e) {
+            logger.error("ParseException while getting icon from device:", e);
+        }
+        return icon;
     }
 }
