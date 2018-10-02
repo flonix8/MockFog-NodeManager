@@ -562,6 +562,7 @@ public class ServiceUserInterface extends ServiceCommon {
             node.setProps("icon", getIconFromDeviceFile((String) node.props.get("flavor"), Settings.PATH_TO_AWS_FLAVORS), "device_sm", Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$"));
         } catch (ExceptionInvalidData exceptionInvalidData) {
             logger.error("Invalid data:", exceptionInvalidData);
+            node.props.put("icon", "device_sm");
         }
         return createVertex ( docId, node, "NODE");
     }
@@ -2572,6 +2573,8 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getIconFromDeviceFile (String device, String mappingFile) throws ExceptionInvalidData {
         String icon = "";
+        int end = device.indexOf("(");
+        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(mappingFile));
