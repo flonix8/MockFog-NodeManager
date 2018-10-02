@@ -93,7 +93,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.large
-            "Nebbiolo fogNode Series": {
+            "device_lg": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_lg.svg',
                 size: 25,
@@ -101,7 +101,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.small
-            "Banana Pi M3": {
+            "device_ml": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_ml.svg',
                 size: 25,
@@ -109,57 +109,7 @@ function draw() {
                 font: {color: "#000"}
             },
             //t2.micro
-            "Raspberry Pi 2 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B+": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Banana Pi": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            //t2.nano //TODO: new svg for nano devices.
-            "BeagleBone": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "BeagleBone Black": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Tre": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Intel Galileo": {
+            "device_sm": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_sm.svg',
                 size: 25,
