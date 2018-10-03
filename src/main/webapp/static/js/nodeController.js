@@ -229,7 +229,7 @@ function callEdgePOST(inputdata, callback){
         },
         error: function(error) {
             console.log(error);
-            document.getElementById("alertContent").innerHTML = "Please keep in mind that nods don't have subnets";
+            document.getElementById("alertContent").innerHTML = "Creating this edge is (currently) impossible. See log for details.";
             $('#modelAlert').modal('toggle');
         }
     });
