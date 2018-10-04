@@ -347,7 +347,10 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public Long getRateByFlavorFile(String device, String flavorFile) throws ExceptionInvalidData {
         Long rate = 1000000L; //all other devices (that are included) usually have 1000000 mbps
-
+        int end = device.indexOf("(");
+        if (end != -1) {
+            device = device.substring(0, end).trim();
+        }
         JSONParser jsonParser = new JSONParser();
         try {
             Object object = jsonParser.parse(new FileReader(flavorFile));
@@ -360,7 +363,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 return rate;
             }
             else {
-                throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
+                throw new ExceptionInvalidData("Invalid Flavor chosen (" + device + "). Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
             logger.error("IOException while getting rate by flavor", e);
@@ -2506,8 +2509,10 @@ public class ServiceUserInterface extends ServiceCommon {
      */
     public String getFlavorFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
         String flavor = "";
-        int end = device.indexOf(" ");
-        device = device.substring(0, end);
+        int end = device.indexOf("(");
+        if (end != -1) {
+            device = device.substring(0, end).trim();
+        }
         String file = Settings.PATH_TO_OS_FLAVORS;
         if (!isOpenStack) {
             file = Settings.PATH_TO_AWS_FLAVORS;
@@ -2524,7 +2529,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 flavor = (String)jsonObject.keySet().toArray()[8]; //
             }
             else {
-                throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
+                throw new ExceptionInvalidData("Invalid Flavor chosen (" + device + "). Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
             logger.error("IOException while getting flavor from device:", e);
