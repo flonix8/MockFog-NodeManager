@@ -95,7 +95,7 @@ function callNodePOST(inputdata){
             console.log(inputdata);
             // add the Node to vis.js
             // nodes.add({id:inputdata.id,group:inputdata.group,label:"undefined"});
-            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":inputdata.icon,"label": l,"flavor":node.flavor,"image":inputdata.image,"name":node.name});
+            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":data.icon,"label": l,"flavor":data.flavor,"image":data.image,"name":data.name});
         },
         error: function(error)
         {

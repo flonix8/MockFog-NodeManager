@@ -2556,7 +2556,7 @@ public class ServiceUserInterface extends ServiceCommon {
             if (jsonObject.containsKey(device)){
                 Object objectProps = jsonObject.get(device);
                 JSONObject jsonProps = (JSONObject)objectProps;
-                icon = (String)jsonProps.get("flavor");
+                icon = (String)jsonProps.get("icon");
             } else if (device.equals("")){
                 logger.warn("Unable to find \"" + device + "\" in mapping file.");
                 icon = (String)jsonObject.keySet().toArray()[8]; //
