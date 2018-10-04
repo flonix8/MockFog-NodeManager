@@ -276,7 +276,7 @@ function onClickPlay() {
             console.log("There went something wrong with ansible!");
         }
     });
-    
+
     var doneMsg = "Ansible is done with the environment setup. Please call GET /doc/{docId}.";
     var pollAnsiblelog = function() {
             $.ajax({
@@ -294,8 +294,8 @@ function onClickPlay() {
 					$('#iframe-ping-card').show();
                 } else { //periodic poll
                     setTimeout(function() {
-                        pollAnsiblelog(); 
-                    }, 1000) 
+                        pollAnsiblelog();
+                    }, 1000)
                 }
             }
         })
@@ -321,10 +321,10 @@ function onClickDestroy() {
     document.getElementById("log-row").style = "display: visible";
     document.getElementById("log-field").innerText = "Loading...";
 
-    console.log('DELETE ' + BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "aws" : "os"));
+    console.log('DELETE ' + BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "os" : "aws"));
     $.ajax({
         type: 'DELETE',
-        url: BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "aws" : "os"),
+        url: BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "os" : "aws"),
         contentType: 'application/json',
         success: function(data) {
             console.log(data);
@@ -408,7 +408,7 @@ function fillFlavorOptionsOS() {
 }
 
 function fillFlavorOptions(mappingURL) {
-    $.ajax({		
+    $.ajax({
         url: mappingURL,
         type: 'GET',
 		async: false,
