@@ -598,7 +598,7 @@ public class ServiceUserInterface extends ServiceCommon {
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
             jg.writeStartObject();
             writeVertex(jg, newNet);
-            jg.writeStringField("icon", getIconFromDeviceFile((String) vMap.get("flavor"), false));
+            jg.writeStringField("icon", getIconFromDeviceFile((String) modelV.props.get("flavor"), false));
             jg.writeEndObject();
             jg.flush();
             jg.close();
