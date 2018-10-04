@@ -90,6 +90,7 @@ function callNodePOST(inputdata){
         success: function(data){
             inputdata.id = Object.keys(data)[0];
             // draw the the node into the diagram
+            console.log("Pudding:")
             console.log(data);
             console.log(inputdata);
             // add the Node to vis.js

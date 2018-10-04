@@ -558,12 +558,6 @@ public class ServiceUserInterface extends ServiceCommon {
         if ( docId.equals(docIdStatic) ) {
             return Response.status(428).entity("illegal node addition after bootstrap").type(MediaType.TEXT_PLAIN).build();
         }
-        try {
-            node.setProps("icon", getIconFromDeviceFile((String) node.props.get("flavor"), Settings.PATH_TO_AWS_FLAVORS), "device_sm", Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$"));
-        } catch (ExceptionInvalidData exceptionInvalidData) {
-            logger.error("Invalid data:", exceptionInvalidData);
-            node.props.put("icon", "device_sm");
-        }
         return createVertex ( docId, node, "NODE");
     }
 
@@ -604,6 +598,7 @@ public class ServiceUserInterface extends ServiceCommon {
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
             jg.writeStartObject();
             writeVertex(jg, newNet);
+            jg.writeStringField("icon", getIconFromDeviceFile((String) vMap.get("flavor"), false));
             jg.writeEndObject();
             jg.flush();
             jg.close();
@@ -2134,7 +2129,7 @@ public class ServiceUserInterface extends ServiceCommon {
                     String image = (String)n.getProperty("image");
                     yg.writeString(getOSImage(image));//yg.writeString("ubuntu-16.04");
                     yg.writeFieldName("flavor");
-                    yg.writeString(getOSFlavorFromDeviceFile((String)n.getProperty("flavor")));//yg.writeString("m1.small");
+                    yg.writeString(getFlavorFromDeviceFile((String)n.getProperty("flavor"), true));//yg.writeString("m1.small");
 //                    yg.writeFieldName("auto_ip");
 //                    yg.writeString("no");
                     yg.writeFieldName("nics");
@@ -2276,7 +2271,7 @@ public class ServiceUserInterface extends ServiceCommon {
                     String image = (String)n.getProperty("image");
                     yg.writeString(getAWSImage(image));
                     yg.writeFieldName("flavor");
-                    yg.writeString(getAWSFlavorFromDeviceFile((String)n.getProperty("flavor")));
+                    yg.writeString(getFlavorFromDeviceFile((String)n.getProperty("flavor"), false));
                     yg.writeEndObject();
                 }
                 yg.writeEndArray();
@@ -2500,51 +2495,24 @@ public class ServiceUserInterface extends ServiceCommon {
 
     }
 
-    /** This method returns the flavor for the OpenStack specific edge device representation.
+    /** This method returns the flavor for the specific edge device representation.
      *
      * @param device the device to be mapped to a flavor
+     * @param isOpenStack - true, if provider is OpenStack
      * @return
      * @throws ExceptionInvalidData
      */
-    public String getOSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
+    public String getFlavorFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
         String flavor = "";
         int end = device.indexOf(" ");
         device = device.substring(0, end);
-        JSONParser jsonParser = new JSONParser();
-        try {
-            Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_OS_FLAVORS));
-            JSONObject jsonObject = (JSONObject)object;
-            if (jsonObject.containsKey(device)){
-                Object objectProps = jsonObject.get(device);
-                JSONObject jsonProps = (JSONObject)objectProps;
-                flavor = (String)jsonProps.get("flavor");
-            } else if (device.equals("")){
-                flavor = (String)jsonObject.keySet().toArray()[8]; //
-            }
-            else {
-                throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
-            }
-        } catch (IOException e) {
-            logger.error("IOException while getting OS flavor from device:", e);
-        } catch (ParseException e) {
-            logger.error("ParseException while getting OS flavor from device:", e);
+        String file = Settings.PATH_TO_OS_FLAVORS;
+        if (!isOpenStack) {
+            file = Settings.PATH_TO_AWS_FLAVORS;
         }
-        return flavor;
-    }
-
-    /** This method returns the flavor for the AWS specific edge device representation.
-     *
-     * @param device the device to be mapped to a flavor
-     * @return
-     * @throws ExceptionInvalidData
-     */
-    public String getAWSFlavorFromDeviceFile (String device) throws ExceptionInvalidData {
-        String flavor = "";
-        int end = device.indexOf(" ");
-        device = device.substring(0, end);
         JSONParser jsonParser = new JSONParser();
         try {
-            Object object = jsonParser.parse(new FileReader(Settings.PATH_TO_AWS_FLAVORS));
+            Object object = jsonParser.parse(new FileReader(file));
             JSONObject jsonObject = (JSONObject)object;
             if (jsonObject.containsKey(device)){
                 Object objectProps = jsonObject.get(device);
@@ -2557,9 +2525,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 throw new ExceptionInvalidData("Invalid Flavor chosen. Please select one of " + jsonObject.keySet());
             }
         } catch (IOException e) {
-            logger.error("IOException while getting AWS flavor from device:", e);
+            logger.error("IOException while getting flavor from device:", e);
         } catch (ParseException e) {
-            logger.error("ParseException while getting AWS flavor from device:", e);
+            logger.error("ParseException while getting flavor from device:", e);
         }
         return flavor;
     }
@@ -2567,17 +2535,21 @@ public class ServiceUserInterface extends ServiceCommon {
     /** This method returns the icon for a specific edge device representation.
      *
      * @param device the device to be mapped to a icon
-     * @param mappingFile the mapping file
+     * @param isOpenStack true, if provider is OpenStack
      * @return icon name
      * @throws ExceptionInvalidData
      */
-    public String getIconFromDeviceFile (String device, String mappingFile) throws ExceptionInvalidData {
+    public String getIconFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
         String icon = "";
         int end = device.indexOf("(");
         device = device.substring(0, end);
+        String file = Settings.PATH_TO_OS_FLAVORS;
+        if (!isOpenStack) {
+            file = Settings.PATH_TO_AWS_FLAVORS;
+        }
         JSONParser jsonParser = new JSONParser();
         try {
-            Object object = jsonParser.parse(new FileReader(mappingFile));
+            Object object = jsonParser.parse(new FileReader(file));
             JSONObject jsonObject = (JSONObject)object;
             if (jsonObject.containsKey(device)){
                 Object objectProps = jsonObject.get(device);
