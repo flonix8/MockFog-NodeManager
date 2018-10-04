@@ -2542,7 +2542,9 @@ public class ServiceUserInterface extends ServiceCommon {
     public String getIconFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
         String icon = "";
         int end = device.indexOf("(");
-        device = device.substring(0, end);
+        if (end != -1) {
+            device = device.substring(0, end).trim();
+        }
         String file = Settings.PATH_TO_OS_FLAVORS;
         if (!isOpenStack) {
             file = Settings.PATH_TO_AWS_FLAVORS;
