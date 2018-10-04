@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Model {
-    protected static final Pattern namePattern = Pattern.compile("^([A-Za-z0-9][-.\\w]*[A-Za-z0-9]|[A-Za-z])$");
-    protected static final Pattern flavorPattern = Pattern.compile("^([A-Za-z0-9][-.\\s\\w]*[A-Za-z0-9\\p{Punct}])$");
+    protected static final Pattern namePattern = Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$");
+    protected static final Pattern flavorPattern = Pattern.compile("^([A-Za-z0-9][-.(\\s\\w]*[A-Za-z0-9)\\p{Punct}])$");
     public Map<String, Object> props = new HashMap<String, Object>(); //this properties will appear in the N4J edges
     public Map<String, Object> propsAll = new HashMap<String, Object>(); //this properties will appear in the N4J edges
 

@@ -5,6 +5,7 @@ import os
 import sys
 import json
 
+
 app = flask.Flask(__name__)
 
 @app.route('/restart/<serviceName>')
@@ -49,6 +50,12 @@ def pingAllNodes():
       stdout=subprocess.PIPE,stderr=subprocess.PIPE,
       universal_newlines=True)
    return flask.Response(pipeStd(proc), mimetype='text/html')
+
+@app.route("/mappingOS")
+def listMappingOS():
+    file = "/opt/MockFog/NodeManager/files/os_device_to_flavor_map.json"
+    data = json.load(open(file))
+    return flask.jsonify(data)
 
 @app.route("/getAgentIPs")
 def getAgentIPs():

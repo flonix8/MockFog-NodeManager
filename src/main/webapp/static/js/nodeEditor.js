@@ -93,7 +93,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.large
-            "Nebbiolo fogNode Series": {
+            "device_lg": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_lg.svg',
                 size: 25,
@@ -101,7 +101,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.small
-            "Banana Pi M3": {
+            "device_ml": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_ml.svg',
                 size: 25,
@@ -109,57 +109,7 @@ function draw() {
                 font: {color: "#000"}
             },
             //t2.micro
-            "Raspberry Pi 2 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B+": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Banana Pi": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            //t2.nano //TODO: new svg for nano devices.
-            "BeagleBone": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "BeagleBone Black": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Tre": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Intel Galileo": {
+            "device_sm": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_sm.svg',
                 size: 25,
@@ -445,6 +395,38 @@ function saveAWSserverCredentials() {
     // console.log(SERVER_CRED_AWS);
     isOpenStack=false;
     postYmlConfig(false); // false = iaasProviderIsOpenStack
+}
+
+function fillFlavorOptionsAWS() {
+	var mappingURL = HOST_URL + "resources/aws_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptionsOS() {
+	var mappingURL = HOST_URL + "resources/os_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptions(mappingURL) {
+    $.ajax({		
+        url: mappingURL,
+        type: 'GET',
+		async: false,
+		dataType: "json",
+        success: function(response) {
+			var selectbox = document.getElementById("instanceType");
+			jQuery.each(response, function(device, properties) {
+				var option = document.createElement("option");
+				var flavor = properties.flavor;
+				option.text = device + " (" + flavor + ")";
+				selectbox.add(option);
+			});
+            return;
+        }, error: function(error)  {
+            console.log(error);
+            return error;
+        }
+    });
 }
 
 function postYmlConfig(iaasProviderIsOpenStack) {

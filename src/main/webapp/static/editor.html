@@ -165,7 +165,7 @@
 
 
                                 <script>
-                                    var iaasProviderIsOpenStack = true;
+                                    var iaasProviderIsOpenStack = false;
 
                                     $('#iaas-provider').on('change', function () {
                                         iaasProviderIsOpenStack = !iaasProviderIsOpenStack;
@@ -311,7 +311,7 @@
                                 </script>
 
                                 <button id="save-credentials-button-aws" type="button" class="btn btn-success"
-                                        onclick="saveAWSserverCredentials()"><i class="fas fa-sign-in-alt"></i> Login (AWS)
+                                        onclick="saveAWSserverCredentials(), fillFlavorOptionsAWS()"><i class="fas fa-sign-in-alt"></i> Login (AWS)
                                 </button>
                                 <button id="save-credentials-button" type="button" class="btn btn-success"
                                         onclick="saveServerCredentials()"><i class="fas fa-sign-in-alt"></i> Login (OpenStack)
@@ -319,9 +319,9 @@
                             </div>
 
                             <script>
-                                $('#row-aws').hide();
-                                $('#save-credentials-button-aws').hide();
-				$('#default-loginAWS').hide();
+                                $('#row-openstack').hide();
+                                $('#save-credentials-button').hide();
+								$('#default-login').hide();
                             </script>
                         </div>
                         <div class="row" id="log-row" style="display: none;">
@@ -692,21 +692,11 @@
                                                         <div class="form-group">
                                                             <label for="instanceType">Type:</label>
                                                             <select id="instanceType" class="form-control">
-                                                                <option value="Raspberry Pi 2 Model B">Raspberry Pi 2 Model B</option>
-                                                                <option>Raspberry Pi 3 Model B</option>
-                                                                <option>Raspberry Pi 3 Model B+</option>
-                                                                <option>BeagleBone</option>
-                                                                <option>BeagleBone Black</option>
-                                                                <option>Banana Pi</option>
-                                                                <option>Banana Pi M3</option>
-                                                                <option>Arduino Tre</option>
-                                                                <option>Arduino Intel Galileo</option>
-                                                                <option>Nebbiolo fogNode Series</option>
                                                             </select>
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="instanceImage">Image:</label>
-                                                            <input id="instanceImage" class="form-control"/>
+                                                            <input id="instanceImage" class="form-control" value="ami-0bdb1d6c15a40392c"/>
                                                         </div>
                                                         <div class="form-group">
                                                             <label>Amount:</label>

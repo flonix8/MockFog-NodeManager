@@ -1,42 +1,52 @@
 {
     "Raspberry Pi 2 Model B" : {
         "flavor" : "m1.small",
-        "rate" : "100000"
+        "rate" : "100000",
+        "icon" : "device_sm"
     },
     "Raspberry Pi 3 Model B": {
         "flavor" : "m1.small",
-        "rate" : "100000"
+        "rate" : "100000",
+        "icon" : "device_sm"
     },
     "Raspberry Pi 3 Model B+": {
         "flavor" : "m1.small",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_sm"
     },
     "BeagleBone Black": {
         "flavor" : "m1.tiny",
-        "rate" : "100000"
+        "rate" : "100000",
+        "icon" : "device_sm"
     },
     "BeagleBone": {
         "flavor" : "m1.tiny",
-        "rate" : "100000"
+        "rate" : "100000",
+        "icon" : "device_sm"
     },
     "Banana Pi": {
         "flavor" : "m1.small",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_sm"
     },
     "Banana Pi M3": {
         "flavor" : "m1.small",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_ml"
     },
     "Arduino Tre": {
         "flavor" : "m1.tiny",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_sm"
     },
     "Arduino Intel Galileo": {
         "flavor" : "m1.tiny",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_sm"
     },
     "Nebbiolo fogNode Series": {
         "flavor" : "m1.large",
-        "rate" : "1000000"
+        "rate" : "1000000",
+        "icon" : "device_lg"
     }
 }
