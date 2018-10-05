@@ -42,8 +42,6 @@ def inner():
 
 @app.route("/pingAll")
 def pingAllNodes():
-   pTestPath = "/opt/MockFog/iac/integrationTests/pingTests.py"
-   agentIPs = "/opt/MockFog/iac/created/agentIPs.json"
    cmd = "/opt/MockFog/NodeManager/nmController/pingshell.sh"
    proc = subprocess.Popen(cmd,
       shell=True,
@@ -60,7 +58,7 @@ def listMappingOS():
 @app.route("/getAgentIPs")
 def getAgentIPs():
    try:
-      agentIPs = json.load(open("/opt/MockFog/iac/created/agentIPs.json","r"))
+      agentIPs = json.load(open("/opt/MockFog/iac/agentIPs.json","r"))
       #return flask.Response(agentIPs, mimetype='application/json')
       return flask.jsonify(agentIPs)
    except Exception, e:
