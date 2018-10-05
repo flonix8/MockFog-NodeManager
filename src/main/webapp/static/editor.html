@@ -324,60 +324,6 @@
 								$('#default-login').hide();
                             </script>
                         </div>
-                        <div class="row" id="log-row" style="display: none;">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-body p-0">
-                                        <div class="p-0" style="margin-left: 16px; margin-top: 8px;"
-                                             id="init-network-log">
-
-                                             <script type="text/javascript">
-                                                 function hideLogRow() {
-                                                    $('#log-row').hide();
-                                                 }
-                                             </script>
-
-                                             <button id="dismiss-button" class="btn btn-danger btn-sm" onclick="hideLogRow()"
-                                                data-toggle="tooltip" data-placement="top"
-                                                title="Hides ansible log.">
-                                                <i class="fas fa-window-close"></i> Dismiss
-                                            </button>
-
-                                            <script>
-                                                function refreshLogsAutomatically () {
-                                                    // $('#reset-topology-button').addClass('disabled');
-
-                                                    function wrapper() {
-                                                        onClickShowMoreLogs();
-                                                        setTimeout(wrapper, 5000);
-                                                    }
-                                                    wrapper();
-                                                }
-                                            </script>
-
-                                            <button id="show-process-logs" class="btn btn-warning btn-sm" onclick="refreshLogsAutomatically()"
-                                                data-toggle="tooltip" data-placement="top" title="Shows logs that are available via API endpoint /process/logs.">
-                                                <i class="fas fa-window-maximize"></i> Expert view
-                                            </button>
-
-                                            <div class="alert alert-dark" role="alert">
-                                                <p><b id="log-field-status"></b> </p>
-                                                <span id="log-field"></span>
-                                                <!--to be filled async-->
-
-                                                <!--p>
-                                                <button id="refresh-process-logs" class="btn btn-success btn-sm" onclick="refreshLogsAutomatically()"
-                                                        data-toggle="tooltip" data-placement="bottom" title="Refreshes logs automatically every 5 seconds.">
-                                                    <i class="fas fa-refresh"></i> Refresh logs automatically
-                                                </button>
-                                                </p-->
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="card" id="cardNetwork" style="visibility: hidden">
                             <div class="card-header bg-light">Network Topology</div>
                             <div class="card-body p-0">
@@ -413,6 +359,11 @@
                                             data-toggle="tooltip" data-placement="top"
                                             title="Warning: This deletes all created virtual machines and networks from the cloud!">
                                         <i class="fas fa-stop"></i> Destroy setup
+                                    </button>
+                                    <button id="btnShowLog" class="btn btn-outline-primary" onclick="onClickShowLog()"
+                                            data-toggle="tooltip" data-placement="top"
+                                            title="This opens the ansible log in a new tab." style="display: none">
+                                        Show Logfiles
                                     </button>
                                     <script>
                                         $('#destroy-button').show(); //.hide()

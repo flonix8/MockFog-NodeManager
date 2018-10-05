@@ -256,8 +256,7 @@ function onClickPlay() {
     var iaasProviderIsOpenStack = isOpenStack;
     console.log("Provider is OpenStack: " + iaasProviderIsOpenStack);
 
-    document.getElementById("log-row").style = "display: visible";
-    document.getElementById("log-field-status").innerText = "Loading...";
+    $('#btnShowLog').show();
 
     $.ajax({
         type: 'GET',
@@ -266,7 +265,6 @@ function onClickPlay() {
         success: function(data) {
             console.log(data);
             console.log("Started ansible successfully!");
-            document.getElementById("log-field-status").innerText = data['msg'];
             $('#destroy-button').show();
             moveStepIndicatorOneStepForward('bootstrap', 'assign');
         },
@@ -347,21 +345,11 @@ function onClickDestroy() {
     });
 }
 
-function onClickShowMoreLogs() {
-    $.ajax({
-        type: 'GET',
-        url: BASE_URL + 'process/logs',
-        contentType: 'application/json',
-        success: function(data) {
-            console.log(data);
-            var logField= document.getElementById('log-field');
-            logField.style = "display: visible";
-            logField.innerText = data['msg'];
-        },
-        error: function (error) {
-            console.log(error);
-        }
-    });
+function onClickShowLog() {
+    //open logging.html in a new tab
+    var win = window.open("http://" + hostIP + "/logging.html", '_blank');
+    win.focus();
+
 }
 
 /**
