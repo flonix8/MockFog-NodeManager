@@ -2546,7 +2546,7 @@ public class ServiceUserInterface extends ServiceCommon {
      * @return icon name
      * @throws ExceptionInvalidData
      */
-    public String getIconFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
+    public static String getIconFromDeviceFile (String device, boolean isOpenStack) throws ExceptionInvalidData {
         String icon = "";
         int end = device.indexOf("(");
         if (end != -1) {

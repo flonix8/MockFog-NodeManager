@@ -256,8 +256,6 @@ function onClickPlay() {
     var iaasProviderIsOpenStack = isOpenStack;
     console.log("Provider is OpenStack: " + iaasProviderIsOpenStack);
 
-    $('#btnShowLog').show();
-
     $.ajax({
         type: 'GET',
         url: BASE_URL + 'doc/' + DOCID + '/bootstrap/' + (iaasProviderIsOpenStack ? "os" : "aws"),
@@ -270,7 +268,6 @@ function onClickPlay() {
         },
         error: function (error) {
             console.log(error);
-            document.getElementById("log-field-status").innerText = error['msg'];
             console.log("There went something wrong with ansible!");
         }
     });
@@ -282,7 +279,6 @@ function onClickPlay() {
             url: BASE_URL + 'ansiblelog',
             contentType: 'application/json',
             success: function(data) {
-                document.getElementById("log-field-status").innerText = data.msg;
                 //!TODO not the message which ansible returns
                 if (data.msg === doneMsg) {
                     //$('log-row').style = "display: none";
@@ -316,9 +312,6 @@ function onClickDestroy() {
     var iaasProviderIsOpenStack = isVisible(document.getElementById("save-credentials-button-aws"));
     // console.log(iaasProviderIsOpenStack);
 
-    document.getElementById("log-row").style = "display: visible";
-    document.getElementById("log-field").innerText = "Loading...";
-
     console.log('DELETE ' + BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "os" : "aws"));
     $.ajax({
         type: 'DELETE',
@@ -328,7 +321,6 @@ function onClickDestroy() {
             console.log(data);
             console.log("Started ansible successfully!");
 
-            document.getElementById("log-field").innerText = data['msg'];
             //make a request of the current document and cast the JSON -> vis.js
             removeTopology();
             $('#destroy-button').hide();
@@ -339,7 +331,6 @@ function onClickDestroy() {
         },
         error: function (error) {
             console.log(error);
-            document.getElementById("log-field").innerText = data['msg'];
             console.log("There went something wrong while destroying the setup!");
         }
     });
@@ -494,7 +485,7 @@ function casteNets(nodeObj, nodeId) {
  * @param nodeId
  */
 function castNodes(nodeObj, nodeId, edge) {
-    nodeObj.group = nodeObj.flavor;
+    nodeObj.group = nodeObj.icon;
     nodeObj.id = nodeId;
     nodeObj.addr = edge.addr;
     nodeObj.label = nodeObj.name;

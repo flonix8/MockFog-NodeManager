@@ -125,31 +125,38 @@ public class ServiceCommon {
 
         jg.writeFieldName( String.valueOf(n.getId()) );
         jg.writeStartObject();
-            writeNeo4jProps(jg, n.getAllProperties());
-
-            Relationship tmpMgmtEdge = null;
-
-            jg.writeFieldName( "edgesBack" );
-            jg.writeStartObject();
-                for (Relationship r : n.getRelationships(INCOMING, LINK)) {
-                    if ( r.getOtherNode(n).hasLabel(DOC) ) {
-                        tmpMgmtEdge = r;
-                    }
-                    if ( !(r.getOtherNode(n).hasLabel(NET) || r.getOtherNode(n).hasLabel(NODE)) ) continue;
-
-                    jg.writeFieldName( String.valueOf( r.getOtherNode(n).getId() ) );
-                    jg.writeStartObject();
-                        jg.writeFieldName("idEdge");
-                        jg.writeObject( String.valueOf(r.getId()) );
-                        writeNeo4jProps(jg, r.getAllProperties());
-
-                    jg.writeEndObject();
-                }
-            jg.writeEndObject();
-
-            if (tmpMgmtEdge != null) {
-                writeNeo4jProps(jg, tmpMgmtEdge.getAllProperties());
+        writeNeo4jProps(jg, n.getAllProperties());
+        if (n.hasLabel(NODE)) {
+            try {
+                jg.writeStringField("icon", ServiceUserInterface.getIconFromDeviceFile((String) n.getProperty("flavor"), false));
+            } catch (ExceptionInvalidData e) {
+                logger.error("unable to add icon field to json:", e);
             }
+        }
+
+        Relationship tmpMgmtEdge = null;
+
+        jg.writeFieldName( "edgesBack" );
+        jg.writeStartObject();
+            for (Relationship r : n.getRelationships(INCOMING, LINK)) {
+                if ( r.getOtherNode(n).hasLabel(DOC) ) {
+                    tmpMgmtEdge = r;
+                }
+                if ( !(r.getOtherNode(n).hasLabel(NET) || r.getOtherNode(n).hasLabel(NODE)) ) continue;
+
+                jg.writeFieldName( String.valueOf( r.getOtherNode(n).getId() ) );
+                jg.writeStartObject();
+                    jg.writeFieldName("idEdge");
+                    jg.writeObject( String.valueOf(r.getId()) );
+                    writeNeo4jProps(jg, r.getAllProperties());
+
+                jg.writeEndObject();
+            }
+        jg.writeEndObject();
+
+        if (tmpMgmtEdge != null) {
+            writeNeo4jProps(jg, tmpMgmtEdge.getAllProperties());
+        }
         jg.writeEndObject();
 
 	}
