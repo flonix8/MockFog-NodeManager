@@ -18,6 +18,8 @@ import org.neo4j.helpers.collection.MapUtil;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
@@ -40,9 +42,8 @@ import java.util.Map;
 @Path("assign")
 public class ServicePropertyInjector extends ServiceUserInterface {
     private Client client;
-
-
-    String ip = "192.168.1.5"; //current Agent IP for Testing
+    String ip = "172.0.0.1";
+    private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
 
     public ServicePropertyInjector(@Context GraphDatabaseService graphDb) {
         super(graphDb);
@@ -73,7 +74,7 @@ public class ServicePropertyInjector extends ServiceUserInterface {
 //            pre =  new ObjectMapper().readValue(strCurrentAdj, ResponseTcConfig[].class);
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing edge and injecting (part 1): ", e);
         }
         Response response = editEdge(docId, nodeFromId, nodeToId, modelE);
         if (response.getStatus() != 200) return response;
@@ -88,7 +89,7 @@ public class ServicePropertyInjector extends ServiceUserInterface {
 //            post =  new ObjectMapper().readValue(strCurrentAdj, ResponseTcConfig[].class);
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing edge and injecting (part 2): ", e);
         }
 
 
@@ -170,10 +171,10 @@ public class ServicePropertyInjector extends ServiceUserInterface {
             jg.close();
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while editing and injecting edge (part 3): ", e);
         }
 
-        System.out.println("Difference: \n" +sw.toString());
+        logger.info("Difference: \n" +sw.toString());
         //TODO: Find bugs (but incremental updates will probably never be used. Hence we won't spend too much time in this)
         return Response.ok().entity(sw.toString()).type(MediaType.APPLICATION_JSON).build();
     }
@@ -248,11 +249,11 @@ public class ServicePropertyInjector extends ServiceUserInterface {
         try {
             postTcConfig = objectMapper.writeValueAsString(responseTcConfig);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Exception while editing TC config: ", e);
         }
         //TODO: Does'nt work (It should return a ResponseMessage object)
         tcConfig = agent.path("api").path("tc-config/").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(ResponseTcConfig.class, postTcConfig);
-        System.out.println("ResponseTcConfig object: \n" + postTcConfig);
+        logger.info("ResponseTcConfig object: \n" + postTcConfig);
 
         return Response.ok().entity(tcConfig).type(MediaType.APPLICATION_JSON).build();
     }
@@ -284,8 +285,7 @@ public class ServicePropertyInjector extends ServiceUserInterface {
 
         WebResource agent = client.resource(getBaseURI(ip, 5000)); // static set to 5000
         ResponseFirewall responseFirewall = agent.path("api").path("firewall/").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).get(ResponseFirewall.class);
-        System.out.println("Is Agent's firewall active? " + responseFirewall.getActive());
-
+        logger.info("Is Agent's firewall active?: " + responseFirewall.getActive());
         return Response.ok().entity(responseFirewall).type(MediaType.APPLICATION_JSON).build();
     }
 
@@ -302,7 +302,7 @@ public class ServicePropertyInjector extends ServiceUserInterface {
         try {
             postFirewall = objectMapper.writeValueAsString(responseFirewall);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Exception while updating firewall: ", e);
         }
         //TODO: Does'nt work (also returns the status of active)
         WebResource agent = client.resource(getBaseURI(ip, 5000)); // static set to 5000
@@ -324,12 +324,12 @@ public class ServicePropertyInjector extends ServiceUserInterface {
         try {
             putFirewall = objectMapper.writeValueAsString(responseFirewall);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Exception while editing firewall: ", e);
         }
         //TODO: Does'nt work (It should return a ResponseMessage object, that's why the response is "Agent status: null")
         WebResource agent = client.resource(getBaseURI(ip, 5000)); // static set to 5000
         ResponseFirewall responseFirewallActive = agent.path("api").path("firewall/").accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_JSON).put(ResponseFirewall.class, putFirewall);
-        System.out.println("Agent status: " + responseFirewallActive.getActive());
+        logger.info("Agent status: " + responseFirewallActive.getActive());
 
         return Response.ok().entity(responseFirewallActive).type(MediaType.APPLICATION_JSON).build();
     }
@@ -379,11 +379,11 @@ public class ServicePropertyInjector extends ServiceUserInterface {
                     "return ipEdge as e", params ).columnAs("e");
             if (relationships.hasNext()){ //for the case of two ingoing LINKs in a Node there whould be while with an Array Response (which is in 2 or more different networks)
                 ip = relationships.next().getProperty("public_ip").toString();
-                System.out.println("Agent Public IP: " + ip);
+                logger.info("Agent Public IP: " + ip);
             }
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting public IP: ", e);
         }
         return ip;
     }
@@ -398,11 +398,11 @@ public class ServicePropertyInjector extends ServiceUserInterface {
                     "return ipEdgeTo as e", params ).columnAs("e");
             if (relationships.hasNext()){ //for the case of two ingoing LINKs in a Node there whould be while with an Array Response (which is in 2 or more different networks)
                 ip = relationships.next().getProperty("addr").toString();
-                System.out.println("Agent IP: " + ip);
+                logger.info("Agent IP: " + ip);
             }
             tx.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception while getting IP: ", e);
         }
         return ip;
     }

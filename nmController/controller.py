@@ -5,6 +5,7 @@ import os
 import sys
 import json
 
+
 app = flask.Flask(__name__)
 
 @app.route('/restart/<serviceName>')
@@ -41,8 +42,6 @@ def inner():
 
 @app.route("/pingAll")
 def pingAllNodes():
-   pTestPath = "/opt/MockFog/iac/integrationTests/pingTests.py"
-   agentIPs = "/opt/MockFog/iac/created/agentIPs.json"
    cmd = "/opt/MockFog/NodeManager/nmController/pingshell.sh"
    proc = subprocess.Popen(cmd,
       shell=True,
@@ -50,10 +49,16 @@ def pingAllNodes():
       universal_newlines=True)
    return flask.Response(pipeStd(proc), mimetype='text/html')
 
+@app.route("/mappingOS")
+def listMappingOS():
+    file = "/opt/MockFog/NodeManager/files/os_device_to_flavor_map.json"
+    data = json.load(open(file))
+    return flask.jsonify(data)
+
 @app.route("/getAgentIPs")
 def getAgentIPs():
    try:
-      agentIPs = json.load(open("/opt/MockFog/iac/created/agentIPs.json","r"))
+      agentIPs = json.load(open("/opt/MockFog/iac/agentIPs.json","r"))
       #return flask.Response(agentIPs, mimetype='application/json')
       return flask.jsonify(agentIPs)
    except Exception, e:

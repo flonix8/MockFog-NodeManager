@@ -1,4 +1,5 @@
 .DS_Store
+.remote-sync.json
 
 # Credentials and keys
 #*.key
@@ -11,6 +12,9 @@ __pycache__/
 *.pyc
 # C extensions
 *.so
+
+#Idea project
+.idea
 
 # Distribution / packaging
 .Python
@@ -111,3 +115,4 @@ openrc.sh
 
 # Ansible
 *.retry
+/graph-service.iml

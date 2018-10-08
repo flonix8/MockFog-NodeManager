@@ -377,7 +377,7 @@ function createNewDoc() {
         type: "POST",
         url: BASE_URL + "doc",
         dataType: "json",
-        data: JSON.stringify( { "addr" : "192.168.100.0/24" } ),
+        data: JSON.stringify( { "addr" : "192.168.100.0/24"} ),
         contentType: 'application/json;charset=utf-8',
         async: false,
         "success": function(data) {

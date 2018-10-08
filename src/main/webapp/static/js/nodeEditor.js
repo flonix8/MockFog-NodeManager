@@ -1,6 +1,7 @@
 var nodes = [];
 var edges = [];
 var network = null;
+var isOpenStack = true;
 
 var BLACK = '#2B1B17';
 
@@ -92,7 +93,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.large
-            "Nebbiolo fogNode Series": {
+            "device_lg": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_lg.svg',
                 size: 25,
@@ -100,7 +101,7 @@ function draw() {
                 font: {color: "#000", size: 12}
             },
             //t2.small
-            "Banana Pi M3": {
+            "device_ml": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_ml.svg',
                 size: 25,
@@ -108,57 +109,7 @@ function draw() {
                 font: {color: "#000"}
             },
             //t2.micro
-            "Raspberry Pi 2 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Raspberry Pi 3 Model B+": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Banana Pi": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            //t2.nano //TODO: new svg for nano devices.
-            "BeagleBone": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "BeagleBone Black": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Tre": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                size: 25,
-                color: {background: "#fff", color: "#fff", border: "black"},
-                font: {color: "#000"}
-            },
-            "Arduino Intel Galileo": {
+            "device_sm": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/device_sm.svg',
                 size: 25,
@@ -302,30 +253,25 @@ function onClickPlay() {
     document.getElementById("play-button").style = "display: none";
 
     // var iaasProviderIsOpenStack = document.getElementById("save-credentials-button-aws").getComputedStyle('display');
-    var iaasProviderIsOpenStack = isVisible(document.getElementById("save-credentials-button-aws"));
-    console.log(iaasProviderIsOpenStack);
-
-    document.getElementById("log-row").style = "display: visible";
-    document.getElementById("log-field-status").innerText = "Loading...";
+    var iaasProviderIsOpenStack = isOpenStack;
+    console.log("Provider is OpenStack: " + iaasProviderIsOpenStack);
 
     $.ajax({
         type: 'GET',
-        url: BASE_URL + 'doc/' + DOCID + '/bootstrap/' + (iaasProviderIsOpenStack ? "aws" : "os"),
+        url: BASE_URL + 'doc/' + DOCID + '/bootstrap/' + (iaasProviderIsOpenStack ? "os" : "aws"),
         contentType: 'application/json',
         success: function(data) {
             console.log(data);
             console.log("Started ansible successfully!");
-            document.getElementById("log-field-status").innerText = data['msg'];
             $('#destroy-button').show();
             moveStepIndicatorOneStepForward('bootstrap', 'assign');
         },
         error: function (error) {
             console.log(error);
-            document.getElementById("log-field-status").innerText = error['msg'];
             console.log("There went something wrong with ansible!");
         }
     });
-    
+
     var doneMsg = "Ansible is done with the environment setup. Please call GET /doc/{docId}.";
     var pollAnsiblelog = function() {
             $.ajax({
@@ -333,7 +279,6 @@ function onClickPlay() {
             url: BASE_URL + 'ansiblelog',
             contentType: 'application/json',
             success: function(data) {
-                document.getElementById("log-field-status").innerText = data.msg;
                 //!TODO not the message which ansible returns
                 if (data.msg === doneMsg) {
                     //$('log-row').style = "display: none";
@@ -343,8 +288,8 @@ function onClickPlay() {
 					$('#iframe-ping-card').show();
                 } else { //periodic poll
                     setTimeout(function() {
-                        pollAnsiblelog(); 
-                    }, 1000) 
+                        pollAnsiblelog();
+                    }, 1000)
                 }
             }
         })
@@ -367,19 +312,15 @@ function onClickDestroy() {
     var iaasProviderIsOpenStack = isVisible(document.getElementById("save-credentials-button-aws"));
     // console.log(iaasProviderIsOpenStack);
 
-    document.getElementById("log-row").style = "display: visible";
-    document.getElementById("log-field").innerText = "Loading...";
-
-    console.log('DELETE ' + BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "aws" : "os"));
+    console.log('DELETE ' + BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "os" : "aws"));
     $.ajax({
         type: 'DELETE',
-        url: BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "aws" : "os"),
+        url: BASE_URL + 'doc/' + DOCID + '/destroy/' + (iaasProviderIsOpenStack ? "os" : "aws"),
         contentType: 'application/json',
         success: function(data) {
             console.log(data);
             console.log("Started ansible successfully!");
 
-            document.getElementById("log-field").innerText = data['msg'];
             //make a request of the current document and cast the JSON -> vis.js
             removeTopology();
             $('#destroy-button').hide();
@@ -390,27 +331,16 @@ function onClickDestroy() {
         },
         error: function (error) {
             console.log(error);
-            document.getElementById("log-field").innerText = data['msg'];
             console.log("There went something wrong while destroying the setup!");
         }
     });
 }
 
-function onClickShowMoreLogs() {
-    $.ajax({
-        type: 'GET',
-        url: BASE_URL + 'process/logs',
-        contentType: 'application/json',
-        success: function(data) {
-            console.log(data);
-            var logField= document.getElementById('log-field');
-            logField.style = "display: visible";
-            logField.innerText = data['msg'];
-        },
-        error: function (error) {
-            console.log(error);
-        }
-    });
+function onClickShowLog() {
+    //open logging.html in a new tab
+    var win = window.open("http://" + hostIP + "/logging.html", '_blank');
+    win.focus();
+
 }
 
 /**
@@ -426,6 +356,7 @@ function saveServerCredentials() {
     SERVER_CRED.password          = document.getElementById("password").value;
     SERVER_CRED.project_name      = document.getElementById("project_name").value;
     //console.log(SERVER_CRED);
+    isOpenStack=true;
     postYmlConfig(true); // true = iaasProviderIsOpenStack
 }
 
@@ -441,7 +372,40 @@ function saveAWSserverCredentials() {
     SERVER_CRED_AWS.ssh_key_name          = document.getElementById("ssh_key_name").value;
     SERVER_CRED_AWS.ssh_user              = document.getElementById("ssh_user").value;
     // console.log(SERVER_CRED_AWS);
+    isOpenStack=false;
     postYmlConfig(false); // false = iaasProviderIsOpenStack
+}
+
+function fillFlavorOptionsAWS() {
+	var mappingURL = HOST_URL + "resources/aws_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptionsOS() {
+	var mappingURL = HOST_URL + "resources/os_device_to_flavor_map.json";
+	fillFlavorOptions(mappingURL);
+}
+
+function fillFlavorOptions(mappingURL) {
+    $.ajax({
+        url: mappingURL,
+        type: 'GET',
+		async: false,
+		dataType: "json",
+        success: function(response) {
+			var selectbox = document.getElementById("instanceType");
+			jQuery.each(response, function(device, properties) {
+				var option = document.createElement("option");
+				var flavor = properties.flavor;
+				option.text = device + " (" + flavor + ")";
+				selectbox.add(option);
+			});
+            return;
+        }, error: function(error)  {
+            console.log(error);
+            return error;
+        }
+    });
 }
 
 function postYmlConfig(iaasProviderIsOpenStack) {
@@ -521,7 +485,7 @@ function casteNets(nodeObj, nodeId) {
  * @param nodeId
  */
 function castNodes(nodeObj, nodeId, edge) {
-    nodeObj.group = nodeObj.flavor;
+    nodeObj.group = nodeObj.icon;
     nodeObj.id = nodeId;
     nodeObj.addr = edge.addr;
     nodeObj.label = nodeObj.name;

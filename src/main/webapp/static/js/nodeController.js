@@ -2,6 +2,7 @@ var hostIP = window.location.hostname;
 if (hostIP == "") {
     hostIP = "localhost";
 }
+var HOST_URL = "http://" + hostIP + "/";
 var BASE_URL = "http://" + hostIP + ":7474/webapi/"; // ../{docid}/subnet|node
 var DOCID;
 var DOCNAME = "mgmt";
@@ -89,10 +90,11 @@ function callNodePOST(inputdata){
         success: function(data){
             inputdata.id = Object.keys(data)[0];
             // draw the the node into the diagram
+            console.log(data);
             console.log(inputdata);
             // add the Node to vis.js
             // nodes.add({id:inputdata.id,group:inputdata.group,label:"undefined"});
-            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":inputdata.group,"label": l,"flavor":node.flavor,"image":inputdata.image,"name":node.name});
+            nodes.add({x:inputdata.x,y:inputdata.y,"id":inputdata.id,"group":data.icon,"label": l,"flavor":data.flavor,"image":data.image,"name":data.name});
         },
         error: function(error)
         {
@@ -227,7 +229,7 @@ function callEdgePOST(inputdata, callback){
         },
         error: function(error) {
             console.log(error);
-            document.getElementById("alertContent").innerHTML = "Please keep in mind that nods don't have subnets";
+            document.getElementById("alertContent").innerHTML = "Creating this edge is (currently) impossible. See log for details.";
             $('#modelAlert').modal('toggle');
         }
     });
@@ -319,4 +321,3 @@ function queryStringFunction() {
         DOCID = userEnteredID;
     }
 }
-
