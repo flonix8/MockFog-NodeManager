@@ -2214,7 +2214,7 @@ public class ServiceUserInterface extends ServiceCommon {
             yg.writeFieldName("vpc");
             yg.writeStartObject();
             yg.writeFieldName("name");
-            yg.writeString("MockFog");
+            yg.writeString("MockFog_vpc");
             yg.writeFieldName("cidr");
             yg.writeString("10.0.0.0/16"); // TODO CIDR out of private IPv4 address ranges is recommended e.g. 10.10.0.0/16
             yg.writeEndObject();
