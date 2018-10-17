@@ -284,7 +284,7 @@ public class ServiceCommon {
         if (jg != null) jg.writeStartObject();
         while ( tcConfigs.hasNext() ) {
             Map<String,Object> resMap = tcConfigs.next(); //tcConfig for one agent with mgmtIp...
-            if (resMap.get("countRules")==null || (long)resMap.get("countRules")==0) continue;
+            //if (resMap.get("countRules")==null || (long)resMap.get("countRules")==0) continue;
             String ipMgmt = resMap.get("mgmtIp").toString();
 
             /*
