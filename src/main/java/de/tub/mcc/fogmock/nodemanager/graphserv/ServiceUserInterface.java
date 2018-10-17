@@ -540,7 +540,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @Path("/doc/{docId}/net")
     @POST
     public Response createNet(  @PathParam("docId") final Long docId, ModelNet net ) {
-        if ( docId.equals(docIdStatic) && !net.addr.equals("0.0.0.0/0") ) {
+        if ( docId.equals(docIdStatic) && !net.addr.getFullIp().equals("0.0.0.0/0") ) {
             return Response.status(428).entity("illegal net creation after bootstrap").type(MediaType.TEXT_PLAIN).build();
         }
         return createVertex ( docId, net, "NET");
@@ -672,6 +672,7 @@ public class ServiceUserInterface extends ServiceCommon {
             writeVertex(jg, nodeEnd);
             jg.writeEndObject();
             if ( docId.equals(docIdStatic) ) {
+                checkIpNetIpRealmCollision(docId);
                 if (db.getNodeById(nodeToId).hasLabel(NODE)) {
                     return Response.status(428).entity("illegal node edge creation after bootstrap").type(MediaType.TEXT_PLAIN).build();
                 }
