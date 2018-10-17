@@ -680,7 +680,7 @@ public class ServiceUserInterface extends ServiceCommon {
                  *  Post-BOOTSTRAP
                  */
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
             }
 
@@ -824,7 +824,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
 
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
 
             }
@@ -885,7 +885,7 @@ public class ServiceUserInterface extends ServiceCommon {
                      *  Post-BOOTSTRAP
                      */
                     startPropagation(docId, "WADJ");
-                    getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                    getAdjListsAndSendToNA(null, docId, "WADJ");
                     //getAdjLists(jg, docId, "WADJ");
                 }
 
@@ -1219,7 +1219,7 @@ public class ServiceUserInterface extends ServiceCommon {
                  *  Post-BOOTSTRAP
                  */
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
 
             }
@@ -1270,7 +1270,7 @@ public class ServiceUserInterface extends ServiceCommon {
             }
             if ( action.equals("writeagents") ) {
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(jg, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(jg, docId, "WADJ");
             }
 
             jg.flush();

@@ -257,13 +257,13 @@ public class ServiceCommon {
      *
      ****************************************************************************************/
 
-    public void getAdjListsAndSendToNA(JsonGenerator jg, Long docId, String edgeLabel, String naMethod) throws Exception {
-        gatherAdjLists(jg, docId, edgeLabel, naMethod);
+    public void getAdjListsAndSendToNA(JsonGenerator jg, Long docId, String edgeLabel) throws Exception {
+        gatherAdjLists(jg, docId, edgeLabel, true);
     }
     public void getAdjLists(JsonGenerator jg, Long docId, String edgeLabel) throws Exception {
-        gatherAdjLists(jg, docId, edgeLabel, "none");
+        gatherAdjLists(jg, docId, edgeLabel, false);
     }
-    public void gatherAdjLists(JsonGenerator jg, Long docId, String edgeLabel, String naMethod) throws Exception {
+    public void gatherAdjLists(JsonGenerator jg, Long docId, String edgeLabel, boolean callAgents) throws Exception {
         if (edgeLabel == null){
             throw new Exception("Edge Label undefined.");
         }
@@ -290,33 +290,17 @@ public class ServiceCommon {
             /*
              * Nodeagent communication
              */
-            ClientResponse resp = null;
-            if (naMethod.toLowerCase().equals("post")) {
-                logger.info("CALLING AGENT FIREWALL " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
-                        .path("api").path("firewall/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
-                        .post(ClientResponse.class, MapUtil.map("active", true));
-                if (resp != null && resp.getStatus() != 200) {
-                    throw new Exception("Agent Firewall POST call to "+getBaseURI(ipMgmt, 5000)+
-                            " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
-                }
-
-                logger.info("CALLING AGENT POST " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
-                        .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
-                        .post(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
-            }
-            if (naMethod.toLowerCase().equals("put")) {
+            if (callAgents) {
                 logger.info("CALLING AGENT PUT " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
+                ClientResponse resp = client.resource(getBaseURI(ipMgmt, 5000))
                         .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
                         .put(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
-            }
-            if (resp != null && resp.getStatus() != 200) {
-                throw new Exception("Agent call to "+getBaseURI(ipMgmt, 5000)+
-                        " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
-            }
 
+                if (resp.getStatus() != 200) {
+                    throw new Exception("Agent call to "+getBaseURI(ipMgmt, 5000)+
+                            " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
+                }
+            }
             if (jg != null) jg.writeFieldName( ipMgmt );
             if (jg != null) jg.writeRawValue( objectMapper.writeValueAsString(resMap.get("tcConfig")) );
         }
