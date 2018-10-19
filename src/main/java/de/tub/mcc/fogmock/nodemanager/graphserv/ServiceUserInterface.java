@@ -2293,6 +2293,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 yg.writeStartArray();
                     yg.writeString("22");
                     yg.writeString("5000");
+                    yg.writeString("5001");
                 yg.writeEndArray();
                 yg.writeFieldName("cidr_ip");
                 yg.writeString("0.0.0.0/0");
