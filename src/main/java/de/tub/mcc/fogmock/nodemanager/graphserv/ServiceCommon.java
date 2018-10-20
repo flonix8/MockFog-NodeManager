@@ -272,7 +272,7 @@ public class ServiceCommon {
         Result tcConfigs = db.execute(
                 "MATCH (vdoc:DOC)-[mgmtEdge:LINK]->(no:NODE)<-[eno:LINK]-(:NET) WHERE id(vdoc)="+docId+" AND (no)-[:"+edgeLabel+"]-() " +
                         " OPTIONAL MATCH (no)<-[r1:"+edgeLabel+"]-(:NODE)<-[eni1:LINK]-(:NET) " + // in case of incoming ADJ edges consider out_rate
-                        " WITH no, eno, mgmtEdge.addr as mgmtIp, collect(r1 {in_rate:r1.in_rate+'kbps', out_rate:r1.out_rate+'kbps', dispersion:r1.dispersion+'ms', delay:r1.delay+'ms', .loss, .corrupt, .duplicate, .reorder, dst_net:eni1.addr}) as ru1 " +
+                        " WITH no, eno, mgmtEdge.addr as mgmtIp, collect(r1 {in_rate:r1.in_rate+'kbps', out_rate:r1.out_rate+'kbps', dispersion:0+'ms', delay:0+'ms', loss:0, corrupt:0, duplicate:0, reorder:0, dst_net:eni1.addr}) as ru1 " +
                         " OPTIONAL MATCH (no)-[r2:"+edgeLabel+"]->(:NODE)<-[eni2:LINK]-(:NET) " + // in case of outgoing ADJ edges consider in_rate
                         " WITH mgmtIp, { in_rate:eno.in_rate+'kbps', out_rate:eno.out_rate+'kbps', rules:ru1+collect(r2 {in_rate:r2.out_rate+'kbps', out_rate:r2.in_rate+'kbps', dispersion:r2.dispersion+'ms', delay:r2.delay+'ms', .loss, .corrupt, .duplicate, .reorder, dst_net:eni2.addr}) } as tcConfig " +
                         " RETURN mgmtIp, tcConfig, size(tcConfig.rules) as countRules " +

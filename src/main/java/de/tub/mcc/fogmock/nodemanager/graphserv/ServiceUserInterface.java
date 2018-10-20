@@ -134,6 +134,19 @@ public class ServiceUserInterface extends ServiceCommon {
     }
 
 
+    /** This method sets the bootstrapped docId to the given docId
+     *
+     * @param docId to be written as staticDocId
+     * @return
+     */
+    @Path("/doc/{docId}/setBootstrapped")
+    @PUT
+    public Response setBootstrappedDocId( @PathParam("docId") final Long docId ) {
+        docIdStatic = docId;
+
+        return Response.ok().entity( "docId " + docId + " successfully set as new bootstrapped docId" ).type( MediaType.TEXT_PLAIN ).build();
+    }
+
     /** TODO
      *
      * @param modelDocTree
