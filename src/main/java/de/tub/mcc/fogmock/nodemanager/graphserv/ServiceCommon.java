@@ -133,6 +133,9 @@ public class ServiceCommon {
                 logger.error("unable to add icon field to json:", e);
             }
         }
+        if (n.hasLabel(NET)) {
+            jg.writeStringField("icon", "net");
+        }
 
         Relationship tmpMgmtEdge = null;
 

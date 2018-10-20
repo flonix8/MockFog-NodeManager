@@ -5,14 +5,14 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Model {
-    protected static final Pattern namePattern = Pattern.compile("^([A-Za-z0-9][-.(\\w]*[A-Za-z0-9)]|[A-Za-z)])$");
+    protected static final Pattern namePattern = Pattern.compile("^([A-Za-z0-9][-.\\w]*[A-Za-z0-9)]|[A-Za-z])$");
     protected static final Pattern flavorPattern = Pattern.compile("^([A-Za-z0-9][-.(\\s\\w]*[A-Za-z0-9)\\p{Punct}])$");
     public Map<String, Object> props = new HashMap<String, Object>(); //this properties will appear in the N4J edges
     public Map<String, Object> propsAll = new HashMap<String, Object>(); //this properties will appear in the N4J edges
 
     protected void setProps(String key, Object value, Object nullValue, Pattern pattern) throws ExceptionInvalidData {
         if (value != null) {
-            if ( pattern != null ) checkPattern((String)value, pattern);
+            if ( pattern != null ) checkPattern(key, (String)value, pattern);
             this.props.put(key, value);
             this.propsAll.put(key, value);
         } else {
@@ -46,9 +46,9 @@ public class Model {
         }
     }
 
-    protected void checkPattern(String value, Pattern pattern) throws ExceptionInvalidData {
+    protected void checkPattern(String key, String value, Pattern pattern) throws ExceptionInvalidData {
         if ( !pattern.matcher(value).find() ) {
-            throw new ExceptionInvalidData("invalid name: "+value);
+            throw new ExceptionInvalidData("invalid value at field '"+key+"': "+value);
         }
     }
 

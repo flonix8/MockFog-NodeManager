@@ -941,7 +941,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
             }
             Result result = db.execute( "MATCH (d:DOC)-[r1:CONTAIN]->(n)" +
-                    "WHERE ID(d)=$docId AND ID(n)=$nId OPTIONAL MATCH (n)-[r]-()" +
+                    " WHERE ID(d)=$docId AND ID(n)=$nId OPTIONAL MATCH (n)-[r]-()" +
                     " DELETE r1, r, n " +
                     " ", params );
             if ( result.getQueryStatistics().getNodesDeleted() != 1) {
@@ -949,7 +949,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 return Response.status(400).entity( "illegal document reference" ).type( MediaType.TEXT_PLAIN ).build();
             }
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
-            jg.writeObject(nId);
+            jg.writeStartArray();
+                jg.writeObject(nId);
+            jg.writeEndArray();
             jg.flush();
             jg.close();
 

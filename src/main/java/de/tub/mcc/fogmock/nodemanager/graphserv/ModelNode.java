@@ -13,6 +13,6 @@ public class ModelNode extends ModelVertex {
     public ModelNode(@JsonProperty("name") String name, @JsonProperty("image") String image, @JsonProperty("flavor") String flavor, @JsonProperty("cancelled") Boolean cancelled) throws ExceptionInvalidData {
         super(name, cancelled);
         setProps("flavor", flavor, "", flavorPattern);
-        setProps("image", image, "", namePattern);
+        setProps("image", image, "", null);
     }
 }
