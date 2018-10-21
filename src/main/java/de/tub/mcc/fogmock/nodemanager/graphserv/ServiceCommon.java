@@ -38,6 +38,7 @@ public class ServiceCommon {
     public static ResponseAnsible responseAnsible = new ResponseAnsible();
     public static ResponseOpenstackConfig openStackConfig = new ResponseOpenstackConfig();
     public static long docIdStatic = -1;
+    public static long pendingInitialAgentHeartBeatCountsStatic = 0;
     private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
     final Label CONFIG = Label.label( "CONFIG" );
     final Label DOC = Label.label( "DOC" );
