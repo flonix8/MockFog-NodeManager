@@ -51,31 +51,6 @@ function callDocsGET(){
 }
 
 
-/**
- * delete a edge between two nodes
- * "/doc/{docId}/edge/{nodeFromId}/{nodeToId}"
- * @param edgeObj
- */
-function callEdgeDELETE(edgeObj){
-    $.ajax({
-        type: "DELETE",
-        url: BASE_URL + "doc/"+ DOCID + "/edge/"+edgeObj.from+"/"+edgeObj.to,
-        contentType: 'application/json',
-        dataType: 'Text',
-        success: function(data){
-            // console.log(data);
-            //remove the edge on the vis.js
-            edges.remove(edgeObj.id);
-        },
-        error: function(error) {
-            console.log(error);
-        }
-    });
-}
-
-
-
-
 function queryStringFunction() {
     // This function is anonymous, is executed immediately and
     // the return value is assigned to QueryString!

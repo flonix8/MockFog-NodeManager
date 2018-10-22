@@ -923,9 +923,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
             }
             Result result = db.execute( "MATCH (d:DOC)-[r1:CONTAIN]->(n)" +
-                    " WHERE ID(d)=$docId AND ID(n)=$nId OPTIONAL MATCH (n)-[r]-()" +
-                    " DELETE r1, r, n " +
-                    " ", params );
+                    " WHERE ID(d)=$docId AND ID(n)=$nId DETACH DELETE n ", params );
             if ( result.getQueryStatistics().getNodesDeleted() != 1) {
                 logger.info("Nodes deleted: " + result.getQueryStatistics().getNodesDeleted());
                 return Response.status(400).entity( "illegal document reference" ).type( MediaType.TEXT_PLAIN ).build();
@@ -936,6 +934,15 @@ public class ServiceUserInterface extends ServiceCommon {
             jg.writeEndArray();
             jg.flush();
             jg.close();
+
+            if ( docId.equals(docIdStatic) ) {
+                /*
+                 *  Post-BOOTSTRAP
+                 */
+                startPropagation(docId, "WADJ");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
+                //getAdjLists(jg, docId, "WADJ");
+            }
 
             tx.success();
         } catch (NotFoundException e) {
@@ -973,13 +980,22 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
             }
 
-            Result result = db.execute( "UNWIND $delIds AS delId MATCH (d:DOC)-[d2f:CONTAIN]->(n) " +
-                    " WHERE ID(d)=$docId AND ID(n)=delId OPTIONAL MATCH (n)-[r:LINK]-(n2) DELETE d2f,r,n", params );
+            Result result = db.execute( "UNWIND $delIds AS delId MATCH (d:DOC)-[:CONTAIN]->(n) " +
+                    " WHERE ID(d)=$docId AND ID(n)=delId DETACH DELETE n", params );
             if ( result.getQueryStatistics().getNodesDeleted() == message.length ) {
                 JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
                 jg.writeObject(message);
                 jg.flush();
                 jg.close();
+
+                if ( docId.equals(docIdStatic) ) {
+                    /*
+                     *  Post-BOOTSTRAP
+                     */
+                    startPropagation(docId, "WADJ");
+                    getAdjListsAndSendToNA(null, docId, "WADJ");
+                    //getAdjLists(jg, docId, "WADJ");
+                }
 
             	tx.success();
             } else {
@@ -1897,9 +1913,11 @@ public class ServiceUserInterface extends ServiceCommon {
 
             tx.success();
         } catch (ExceptionInvalidData e) {
+            docIdStatic = -1;
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_BOOTSTRAPPED);
             return Response.status(400).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         } catch (ExceptionInternalServerError e) {
+            docIdStatic = -1;
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_BOOTSTRAPPED);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         }

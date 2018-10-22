@@ -322,31 +322,64 @@ function onClickAddNetwork() {
  */
 function onClickSelectDelete() {
     var edgeObj = new Object();
-    $.ajax({
-        type: "DELETE",
-        url: BASE_URL + "doc/"+ DOCID + "/vertex",
-        contentType: 'application/json',
-        data: JSON.stringify( network.getSelectedNodes() ),
-        success: function(arrDeletedIds){
-            for (var i=0; i<arrDeletedIds.length; i++) {
-                nodes.remove(arrDeletedIds[i]);
+    var selNodes = network.getSelectedNodes();
+    if ( selNodes.length > 0 ) {
+        //VERTICES
+        $.ajax({
+            type: "DELETE",
+            url: BASE_URL + "doc/"+ DOCID + "/vertex",
+            contentType: 'application/json',
+            data: JSON.stringify( selNodes ),
+            success: function(arrDeletedIds){
+                for (var i=0; i<arrDeletedIds.length; i++) {
+                    detachDelete(arrDeletedIds[i]);
+                }
+            },
+            error: function(error) {
+                alert( "unable to delete:\n"+JSON.stringify(error) );
             }
-        },
-        error: function(error) {
-            alert( "unable to delete:\n"+JSON.stringify(error) );
-        }
-    });        
-
-    network.getSelectedEdges().forEach(function (element) {
-        edgeObj = edges.get(element);
-        callEdgeDELETE(edgeObj);
-    });
-    //nodes.remove(network.getSelectedNodes());
-
-    //don't show popups anymore
+        });
+    } else {
+        //EDGES
+        network.getSelectedEdges().forEach(function (element) {
+            edgeObj = edges.get(element);
+            $.ajax({
+                type: "DELETE",
+                url: BASE_URL + "doc/"+ DOCID + "/edge/"+edgeObj.from+"/"+edgeObj.to,
+                contentType: 'application/json',
+                dataType: 'Text',
+                success: function(data){
+                    edges.remove(edgeObj.id);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+    }
     closePopUp();
-
 }
+
+function detachDelete(node) {
+    var delEdges = getEdgesInOut(node);
+    for (var i=0; i<delEdges.length; i++) {
+        edges.remove( delEdges[i] );
+    }
+    nodes.remove(node);
+}
+
+function getEdgesInOut(nodeId) {
+    return edges.get().filter(function (edge) {
+        return edge.from === nodeId || edge.to === nodeId;
+    });
+}
+
+
+
+
+
+
+
 
 /**
  * Triggered when we click on the button play
