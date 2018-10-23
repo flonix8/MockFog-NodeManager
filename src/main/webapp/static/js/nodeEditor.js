@@ -766,15 +766,11 @@ function nodePopUp(params) {
     // console.log(nodes.get(params.nodes[0]));
     document.getElementById("nodeID").value = nodeObj.id;
     document.getElementById("nodeName").value = nodeObj.name;
-    document.getElementById("nodeAddrMgnt").value = nodeObj.addr;
 
     var networks = "";
      	for (var net in nodeObj.edgesBack) {
      		var netvalue = nodeObj.edgesBack[net];
-        var networkName = "pudding";
-        var test = nodes.get(net).name;
-        console.log(test);
-     		//var networkName = callVertexGET(net).responseJSON[net].name;
+        var networkName = nodes.get(net).name;
      		networks = networks + "<div class=\"form-group row\" style=\"margin-top: -5px;\">";
      		networks = networks + "<label for=\"" + "SOMEID" + "\"class=\"col-sm-4 form-control-label\">" + "IP (" + networkName + "):" + "</label>";
      		networks = networks + "<div class=\"col-sm-8\">";
