@@ -395,7 +395,7 @@
                                             <div id="mynetwork"></div>
                                             <div id="popupEdge" class="popover fade bs-popover-right hide"
                                                  role="tooltip" id="popover300087" x-placement="right"
-                                                 style="position: absolute; top: 200px; left: 200px;/*will-change: transform; transform: translate3d(513px, 1736px, 0px);*/">
+                                                 style="display:none; position: absolute; top: 200px; left: 200px;/*will-change: transform; transform: translate3d(513px, 1736px, 0px);*/">
                                                 <div class="arrow" style="top: 200px;"></div>
                                                 <div class="popover-header">
                                                     <ul class="nav nav-tabs">
@@ -545,14 +545,18 @@
                                                             <a class="nav-link disabled" id="deleteEdge" style="position: absolute;
                                                             right: 0px;" onclick="onClickSelectDelete()"><i class="fas fa-trash"></i> Delete</a>
                                                         </li>
+                                                        <li class="nav-item">
+                                                            <a class="nav-link disabled" id="deactivateEdge" style="position: absolute;" onclick="onClickDeactivateEdge()">
+                                                                <i class="fas fa-ban"></i>Toggle Unreachable</a>
+                                                        </li>
                                                     </ul>
                                                 </div>
                                             </div>
                                             <div id="popupNode" class="popover fade bs-popover-right hide"
                                                  role="tooltip" id="popover300088" x-placement="right"
-                                                 style="position: absolute; top: 200px; left: 200px;/*will-change: transform; transform: translate3d(513px, 1736px, 0px);*/">
+                                                 style="display:none; position: absolute; top: 200px; left: 200px;/*will-change: transform; transform: translate3d(513px, 1736px, 0px);*/">
                                                 <div class="arrow" style="top: 100px;"></div>
-                                                <div class=popover-header">
+                                                <div class="popover-header">
                                                     <ul class="nav nav-tabs" style="border-bottom: 1px solid #dee2e6;">
                                                         <li class="nav-item">
                                                             <a class="nav-link active">Node</a>
@@ -577,15 +581,8 @@
                                                                            readonly/>
                                                                 </div>
                                                             </div>
-                                                            <div class="form-group row" style="margin-top: -5px;">
-                                                                <label for="nodeAddr"
-                                                                       class="col-sm-4 form-control-label">IP/Addr:</label>
-                                                                <div class="col-sm-8">
-                                                                    <input id="nodeAddr"
-                                                                           class="form-control form-control-sm"
-                                                                           readonly/>
-                                                                </div>
-                                                            </div>
+                                                            <div id="networks">
+ 								                                            </div>
                                                             <div class="form-group row" style="margin-top: -5px;">
                                                                 <label for="nodeFlavor"
                                                                        class="col-sm-4 form-control-label">Flavor:</label>
@@ -612,7 +609,7 @@
                                                     <ul class="nav nav-tabs" style="margin-bottom: 35px;">
                                                         <li class="nav-item">
                                                             <a class="nav-link disabled" id="deactivateNode" style="position: absolute;" onclick="onClickDeactivateNode()">
-                                                                <i class="fas fa-ban"></i>Unreachable</a>
+                                                                <i class="fas fa-ban"></i>Toggle Unreachable</a>
                                                         </li>
                                                         <li class="nav-item">
                                                             <a class="nav-link disabled" id="deleteNode" style="position: absolute;right: 0px;" onclick="onClickSelectDelete()">
@@ -762,13 +759,13 @@
                                     var url = "http://" + window.location.hostname + ":5001";
 									//var url = "http://localhost:5001";
                                     function doPing(mode) {
-                                        
+
 										document.getElementsByName('pingFrame')[0].src = url + mode;
                                     }
                                 </script>
-								
+
                                 <button id="show-iframe-ping-all" class="btn btn-primary" onclick = "doPing('/pingAll')"
-                                        data-toggle="tooltip" data-placement="top" 
+                                        data-toggle="tooltip" data-placement="top"
                                         title="All bootstrapped nodes ping each other.">
                                     <i class="fas fa-rocket"></i> Ping all
                                 </button>

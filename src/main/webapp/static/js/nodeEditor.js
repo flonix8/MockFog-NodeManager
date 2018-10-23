@@ -73,15 +73,59 @@ function draw() {
                 max: 32
             }
         },
+//        physics: {
+//            "enabled": true,
+//            repulsion: {damping:0.01,centralGravity: 100,nodeDistance:0.1}
+//        },
         physics: {
-            "enabled": true,
-            //"minVelocity": 0.75,
-            repulsion: {damping:0.01,centralGravity: 100,nodeDistance:0.1}
+            barnesHut: {
+                gravitationalConstant: -10000,
+                centralGravity: 1.0,
+                springLength: 110,
+                springConstant: .114,
+                damping: .20,
+                avoidOverlap: 80.9
+            },
+              forceAtlas2Based: {
+                gravitationalConstant: -50,
+                centralGravity: 0.01,
+                springConstant: 1.18,
+                springLength: 110,
+                damping: .34,
+                avoidOverlap: 25.9
+            },
+              repulsion: {
+                centralGravity: 0.2,
+                springLength: 40,
+                springConstant: 1.15,
+                nodeDistance: 230,
+                damping: .05
+            },
+              hierarchicalRepulsion: {
+                centralGravity: 0.0,
+                springLength: 110,
+                springConstant: 1.11,
+                nodeDistance: 250,
+                damping: .09
+            },
+            maxVelocity: 100,
+            minVelocity: .8,
+            solver: 'barnesHut',
+            stabilization: {
+              enabled: true,
+              iterations: 1000,
+              updateInterval: 100,
+              onlyDynamicEdges: false,
+              fit: true
+            },
+            timestep: 0.5,
+            adaptiveTimestep: true
         },
         edges: {
             color: BLACK,
             font: {align: 'top'},
-            smooth: false
+            smooth: false,
+            arrows: "to"
         },
         // define the different visualisations of devices
         groups: {
@@ -116,12 +160,6 @@ function draw() {
                 color: {background: "#fff", color: "#fff", border: "black"},
                 font: {color: "#000"}
             },
-            "disabled": {
-                shape: 'circularImage',
-                image: './vendor/vis.js/img/mockfog/device_sm.svg',
-                color: {background: "#fff", color: "#fff", border: "red"},
-                font: {color: "#000"}
-            },
             "router": {
                 shape: 'circularImage',
                 image: './vendor/vis.js/img/mockfog/router.svg',
@@ -146,15 +184,43 @@ function draw() {
         },
         manipulation: {
             enabled: false,
-            addEdge: function (data, callback) {
-                console.log('add edge', data);
-                if (data.from == data.to) {
-                    var r = confirm("Do you want to connect the node to itself?");
-                    if (r === true) {
-                        callEdgePOST(data, callback);
-                    }
+            addEdge: function (inputdata, callback) {
+                console.log('add edge', inputdata);
+                if (inputdata.from == inputdata.to) {
+                    alert("Illegal connection of a component to itself");
                 } else {
-                    callEdgePOST(data, callback);
+                    var nodeFromId = inputdata.from;
+                    var nodeToId = inputdata.to;
+                    $.ajax({
+                        type: "POST",
+                        url: BASE_URL + "doc/" + DOCID + "/edge/" + nodeFromId + "/" + nodeToId,
+                        dataType: 'json',
+                        success: function(data) {
+                            // draw into the canvas
+                            node = data[ Object.keys(data)[0] ];
+                            keysFrom =  Object.keys( node.edgesBack );
+                            for (i=0; i<keysFrom.length; i++) {
+                                if (keysFrom[i] == nodeFromId || keysFrom[i] == nodeToId) {
+                                    edge = node.edgesBack[keysFrom[i]];
+                                    edge.to = Object.keys(data)[0];
+                                    edge.from = keysFrom[i];
+                                    edge = castEdge(edge, edge.from, edge.to);
+                                    edges.remove(edge.id);
+                                    edges.add(edge);
+                                    //callback(edge);
+                                    console.log("found and added edge\n"+JSON.stringify(data));
+                                    return;
+                                }
+                            }
+                            console.log("PROBLEM: edge was not found and could not be added\n"+data);
+                        },
+                        error: function(error) {
+                            console.log(error);
+                            alert( "Failed to create edge: \n\n"+JSON.stringify(error) );
+                            //document.getElementById("alertContent").innerHTML = "Creating this edge is (currently) impossible. See log for details.";
+                            //$('#modelAlert').modal('toggle');
+                        }
+                    });
                 }
             }
         },
@@ -167,6 +233,7 @@ function draw() {
     });
 
 }
+
 
 function initialize() {
     //inizialise Vis.js
@@ -191,14 +258,29 @@ function onClickAddEdge() {
  */
 function onClickAddInstance() {
     var requestNode = new Object();
-    requestNode.group = document.getElementById('instanceType').value;
+    requestNode.flavor = document.getElementById('instanceType').value;
     requestNode.image = document.getElementById('instanceImage').value;
+
     instanceAmount = document.getElementById('inputAmount').value;
     for (var i = 0; i < instanceAmount; i++) {
-        requestNode.x = Math.floor(Math.random() * 101);
-        requestNode.y = Math.floor(Math.random() * 101);
+        requestNode.name = getRandomLabel();
         console.log(requestNode);
-        callNodePOST(requestNode);
+
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: BASE_URL + "doc/"+ DOCID + "/node",
+            contentType: 'application/json;charset=utf-8',
+            data: JSON.stringify(requestNode),
+            dataType: 'json',
+            success: function(data){
+                var nodeId = Object.keys(data)[0];
+                nodes.add( castNodeNet(data[nodeId], nodeId) );
+            },
+            error: function(error) {
+                alert( "unable to add node:\n"+JSON.stringify(error) );
+            }
+        });
     }
     //close model of bootstrap
     $('#modelAddInstance').modal('toggle');
@@ -208,14 +290,29 @@ function onClickAddInstance() {
  * Triggered when we click on the button add network
  */
 function onClickAddNetwork() {
-    var requestNode = new Object();
-    requestNode.group = "net";
-    requestNode.ip = document.getElementById('netIP').value;
-    requestNode.name = getRandomLabel();
-    callNetPOST(requestNode);
+    var net = new Object();
+    net.group = "net";
+    net.addr = document.getElementById('netIP').value;
+    net.name = getRandomLabel();
 
-    if (!(requestNode.ip == '0.0.0.0/0')) {
-        $('select#netIP option[value=\'' + requestNode.ip +'\']').remove();
+    $.ajax({
+        type: "POST",
+        url: BASE_URL + "doc/"+ DOCID + "/net",
+        contentType: 'application/json;charset=utf-8',
+        data: JSON.stringify( net ),
+        dataType: 'json',
+        success: function(data){
+            var nodeId = Object.keys(data)[0];
+            nodes.add( castNodeNet(data[nodeId], nodeId) );
+        },
+        error: function(error) {
+            alert( "unable to add net:\n"+JSON.stringify(error) );
+        }
+    });
+
+
+    if (!(net.addr == '0.0.0.0/0')) {
+        $('select#netIP option[value=\'' + net.addr +'\']').remove();
     }
     $('#modelAddNetwork').modal('toggle');
 }
@@ -225,19 +322,64 @@ function onClickAddNetwork() {
  */
 function onClickSelectDelete() {
     var edgeObj = new Object();
-    network.getSelectedNodes().forEach(function (element) {
-        callVertexDELETE(element);
-    });
-    network.getSelectedEdges().forEach(function (element) {
-        edgeObj = edges.get(element);
-        callEdgeDELETE(edgeObj);
-    });
-    //nodes.remove(network.getSelectedNodes());
-
-    //don't show popups anymore
+    var selNodes = network.getSelectedNodes();
+    if ( selNodes.length > 0 ) {
+        //VERTICES
+        $.ajax({
+            type: "DELETE",
+            url: BASE_URL + "doc/"+ DOCID + "/vertex",
+            contentType: 'application/json',
+            data: JSON.stringify( selNodes ),
+            success: function(arrDeletedIds){
+                for (var i=0; i<arrDeletedIds.length; i++) {
+                    detachDelete(arrDeletedIds[i]);
+                }
+            },
+            error: function(error) {
+                alert( "unable to delete:\n"+JSON.stringify(error) );
+            }
+        });
+    } else {
+        //EDGES
+        network.getSelectedEdges().forEach(function (element) {
+            edgeObj = edges.get(element);
+            $.ajax({
+                type: "DELETE",
+                url: BASE_URL + "doc/"+ DOCID + "/edge/"+edgeObj.from+"/"+edgeObj.to,
+                contentType: 'application/json',
+                dataType: 'Text',
+                success: function(data){
+                    edges.remove(edgeObj.id);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+    }
     closePopUp();
-
 }
+
+function detachDelete(node) {
+    var delEdges = getEdgesInOut(node);
+    for (var i=0; i<delEdges.length; i++) {
+        edges.remove( delEdges[i] );
+    }
+    nodes.remove(node);
+}
+
+function getEdgesInOut(nodeId) {
+    return edges.get().filter(function (edge) {
+        return edge.from === nodeId || edge.to === nodeId;
+    });
+}
+
+
+
+
+
+
+
 
 /**
  * Triggered when we click on the button play
@@ -470,66 +612,38 @@ function removeTopology() {
  * @param nodeObj
  * @param nodeId
  */
-function casteNets(nodeObj, nodeId) {
-    nodeObj.label = nodeObj.name+"\n"+nodeObj.addr;
-    nodeObj.group = 'net';
-    nodeObj.id = nodeId;
-    nodes.add(nodeObj);
-}
+function castNodeNet(nodeObj, nodeId) {
+    nodeObj.label = nodeObj.name;
+    if (nodeObj.icon == "net") {
+        nodeObj.label = nodeObj.name+"\n"+nodeObj.addr;
+    }
+    if (nodeObj.icon != "net") {
+        var edge = nodeObj.edgesBack[ Object.keys(nodeObj.edgesBack)[0] ];
+        if (edge != undefined) {
+            nodeObj.addr = edge.addr;
+            nodeObj.label = nodeObj.name+"\n"+nodeObj.addr;
+        }
+    }
 
-/**
- * Add the output of a Node Response
- * to the vis.js network topologie
- *
- * @param nodeObj
- * @param nodeId
- */
-function castNodes(nodeObj, nodeId, edge) {
+    nodeObj.font = nodeObj.cancelled ? {color: "red"} : {color: "#000"};
     nodeObj.group = nodeObj.icon;
     nodeObj.id = nodeId;
-    nodeObj.addr = edge.addr;
-    nodeObj.label = nodeObj.name;
-    nodes.add(nodeObj);
+    return nodeObj;
 }
 
-/**
- * Create a label for the edges from a node object
- * @param edge
- * @return {string}
- */
-function casteNodeEdgeCreateLabel(edge) {
-    return "delay:" + edge.delay;
-}
-
-/**
- * Add the output of a Edge Response
- * to the vis.js network topologie
- * @param edge
- * @param edgeFrom
- * @param edgeTo
- */
 function castEdge(edge, edgeFrom, edgeTo) {
     edge.from = edgeFrom;
     edge.to = edgeTo;
-    edge.id = edgeFrom + "" + edgeTo;
-    edge.label = casteNodeEdgeCreateLabel(edge);
-    edges.add(edge);
-}
-/**
- * Add the output of a Edge Response before ansabile was
- * loaded that means the label will be missing
- * to the vis.js network topologie
- * @param edge
- * @param edgeFrom
- * @param edgeTo
- */
-function castEdgeWithoutLoad(edge, edgeFrom, edgeTo) {
-    edge.from = edgeFrom;
-    edge.to = edgeTo;
-    edge.id = edgeFrom + "" + edgeTo;
-    edge.font = {align: 'top'};
-    //edge.label = casteNodeEdgeCreateLabel(edge);
-    edges.add(edge);
+    edge.arrows = "to";
+    edge.id = edgeFrom + "-" + edgeTo;
+    edge.label = "delay:" + edge.delay; //casteNodeEdgeCreateLabel(edge);
+    edge.color = edge.cancelled ? {color: "red", highlight: "orange"} : {color: "#000"};
+    edge.dashes = edge.cancelled;
+    //color: BLACK,
+    //font: {align: 'top'},
+    //smooth: false,
+    //arrows: "to"
+    return edge;
 }
 
 /**
@@ -538,108 +652,61 @@ function castEdgeWithoutLoad(edge, edgeFrom, edgeTo) {
  * This is the main controller for casting the ansible output JSON object and adding it to vis.js
  */
 function castAnsibleOutput() {
-    //remove the current one
-    removeTopology();
-    //get the whole document of the topologie from Ansible
-    var objectResponse = callDocGET(DOCID);
-    // add all Nets to the Visualisation
-    for (var nodeId in objectResponse.responseJSON.allNets) {
-        casteNets(objectResponse.responseJSON.allNets[nodeId], nodeId);
-    }
-    // add all Nodes to the Visualisation
-    var edge;
-    for (var nodeId in objectResponse.responseJSON.allNodes) {
-        //get first and only edgesBackObj from Node and from this object select the addr
-        edge = objectResponse.responseJSON.allNodes[nodeId].edgesBack[Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0]]
-        castNodes(objectResponse.responseJSON.allNodes[nodeId], nodeId, edge);
-    }
-    // add all Edges from Nodes to the Visualisation
-    var edgeFrom;
-    var edgeTo;
-    for (var nodeId in objectResponse.responseJSON.allNodes) {
-        // nodeId is the id "to the node"
-        //get first and only edgesBackObj from Node and from this object select the addr
-        edge = objectResponse.responseJSON.allNodes[nodeId].edgesBack[Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0]];
-        edgeTo = nodeId;
-        edgeFrom = Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0];
-        console.log("from:" + edgeFrom + " To:" + edgeTo);
-        console.log(edge);
-        castEdge(edge, edgeFrom, edgeTo);
-    }
-    // add all Edges from Nets to the Visualisation
-    // override current value to prevent miss calculations
-    var edgeFrom;
-    var edgeTo;
-    for (var nodeId in objectResponse.responseJSON.allNets) {
-        edgeTo = nodeId;
-        // nodeId is the id "to the node"
-        //get first and only edgesBackObj from Node and from this object select the addr
-        for (var edgeId in objectResponse.responseJSON.allNets[nodeId].edgesBack) {
-            edge = objectResponse.responseJSON.allNets[nodeId].edgesBack[edgeId];
-            edgeFrom = edgeId;
-            //check if both variables are not null
-            if (!(!edgeTo || !edgeFrom)) {
-                //add the edge to the vis.js Visualisation
-                console.log("from:" + edgeFrom + " To:" + edgeTo);
-                console.log(edge);
-                castEdge(edge, edgeFrom, edgeTo);
-            }
-        }
-    }
+    loadTopology();
 }
 
 /**
- * This Function loads the Document with the global docid in the Topologie
+ * This Function loads the Document with the global docid in the Topology
  */
 function loadTopology() {
     //remove the current one
     removeTopology();
-    //get the whole document of the topologie from Ansible
-    var objectResponse = callDocGET(DOCID);
-    // add all Nets to the Visualisation
-    for (var nodeId in objectResponse.responseJSON.allNets) {
-        casteNets(objectResponse.responseJSON.allNets[nodeId], nodeId);
-    }
-    // add all Nodes to the Visualisation
-    var edge;
-    for (var nodeId in objectResponse.responseJSON.allNodes) {
-        //get first and only edgesBackObj from Node and from this object select the addr
-        edge = objectResponse.responseJSON.allNodes[nodeId].edgesBack[Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0]]
-        castNodes(objectResponse.responseJSON.allNodes[nodeId], nodeId, edge);
-    }
-    // add all Edges from Nodes to the Visualisation
-    var edgeFrom;
-    var edgeTo;
-    for (var nodeId in objectResponse.responseJSON.allNodes) {
-        // nodeId is the id "to the node"
-        //get first and only edgesBackObj from Node and from this object select the addr
-        edge = objectResponse.responseJSON.allNodes[nodeId].edgesBack[Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0]];
-        edgeTo = nodeId;
-        edgeFrom = Object.keys(objectResponse.responseJSON.allNodes[nodeId].edgesBack)[0];
-        console.log("from:" + edgeFrom + " To:" + edgeTo);
-        console.log(edge);
-        castEdgeWithoutLoad(edge, edgeFrom, edgeTo);
-    }
-    // add all Edges from Nets to the Visualisation
-    // override current value to prevent miss calculations
-    var edgeFrom;
-    var edgeTo;
-    for (var nodeId in objectResponse.responseJSON.allNets) {
-        edgeTo = nodeId;
-        // nodeId is the id "to the node"
-        //get first and only edgesBackObj from Node and from this object select the addr
-        for (var edgeId in objectResponse.responseJSON.allNets[nodeId].edgesBack) {
-            edge = objectResponse.responseJSON.allNets[nodeId].edgesBack[edgeId];
-            edgeFrom = edgeId;
-            //check if both variables are not null
-            if (!(!edgeTo || !edgeFrom)) {
-                //add the edge to the vis.js Visualisation
-                console.log("from:" + edgeFrom + " To:" + edgeTo);
-                console.log(edge);
-                castEdgeWithoutLoad(edge, edgeFrom, edgeTo);
+
+    $.ajax({
+        url: BASE_URL + "doc" + "/"+DOCID,
+        async: false,
+        dataType: 'json',
+        type: 'GET',
+        success: function(doc) {
+            // add all Nets to the Visualisation
+            for (var nodeId in doc.allNets) {
+                nodes.add( castNodeNet(doc.allNets[nodeId], nodeId) );
             }
+            // add all Nodes to the Visualisation
+            for (var nodeId in doc.allNodes) {
+                nodes.add( castNodeNet(doc.allNodes[nodeId], nodeId) );
+            }
+            // add all Edges from Nodes to the Visualisation
+            for (var nodeId in doc.allNodes) {
+                // nodeId is the id "to the node"
+                var edgeTo = nodeId;
+                var edgeKeys = Object.keys(doc.allNodes[nodeId].edgesBack);
+                for (var i=0; i<edgeKeys.length; i++) {
+                    var edgeFrom = Object.keys(doc.allNodes[nodeId].edgesBack)[i];
+                    edge = doc.allNodes[nodeId].edgesBack[ edgeFrom ];
+                    console.log("from:" + edgeFrom + " To:" + edgeTo);
+                    console.log(edge);
+                    edges.add( castEdge(edge, edgeFrom, edgeTo) );
+                }
+            }
+            // add all Edges from Nets to the Visualisation
+            // override current value to prevent miss calculations
+            for (var nodeId in doc.allNets) {
+                var edgeTo = nodeId;
+                var edgeKeys = Object.keys(doc.allNets[nodeId].edgesBack);
+                for (var i=0; i<edgeKeys.length; i++) {
+                    var edgeFrom = Object.keys(doc.allNets[nodeId].edgesBack)[i];
+                    edge = doc.allNets[nodeId].edgesBack[ edgeFrom ];
+                    console.log("from:" + edgeFrom + " To:" + edgeTo);
+                    console.log(edge);
+                    edges.add( castEdge(edge, edgeFrom, edgeTo) );
+                }
+            }
+        },
+        error: function(error)  {
+            alert( "unable to load document "+DOCID+":\n"+JSON.stringify(error) );
         }
-    }
+    });
 }
 
 /**
@@ -680,7 +747,7 @@ function edgePopUp(params) {
     $('#popupEdge').css('top', params.pointer.DOM.y - 57);
     $('#popupEdge').css('left', params.pointer.DOM.x + relatedContainerLeft);
     $('#popupEdge').addClass('show');
-    $('#popupEdge').fadeIn();
+    $('#popupEdge').show();
 }
 
 /**
@@ -699,11 +766,24 @@ function nodePopUp(params) {
     // console.log(nodes.get(params.nodes[0]));
     document.getElementById("nodeID").value = nodeObj.id;
     document.getElementById("nodeName").value = nodeObj.name;
-    document.getElementById("nodeAddr").value = nodeObj.addr;
+
+    var networks = "";
+     	for (var net in nodeObj.edgesBack) {
+     		var netvalue = nodeObj.edgesBack[net];
+        var networkName = nodes.get(net).name;
+     		networks = networks + "<div class=\"form-group row\" style=\"margin-top: -5px;\">";
+     		networks = networks + "<label for=\"" + "SOMEID" + "\"class=\"col-sm-4 form-control-label\">" + "IP (" + networkName + "):" + "</label>";
+     		networks = networks + "<div class=\"col-sm-8\">";
+     		networks = networks + "<input id=\" " + "SomeID" + "\" class=\"form-control form-control-sm\" readonly value=\"" + netvalue.addr + "\"/>";
+     		networks = networks + "</div> </div>";
+     	}
+
+    document.getElementById("networks").innerHTML = networks;
+
     document.getElementById("nodeFlavor").value = nodeObj.flavor;
     document.getElementById("nodeImage").value = nodeObj.image;
     $('#popupNode').addClass('show');
-    $('#popupNode').fadeIn();
+    $('#popupNode').show();
 }
 
 /**
@@ -724,15 +804,22 @@ function onClickEditEdge() {
         document.getElementById("editEdge").innerHTML = "<i class='fas fa-check'></i>Done";
         setReadOnlyEdge(false);
     } else {
-        var response = callEdgePUT($("#edgeFrom").val(), $("#edgeTo").val(), castEdgePopUpFormToRequest());
-        if (response) {
-            document.getElementById("editEdge").innerHTML = "<i class='far fa-edit'></i>Edit";
-            setReadOnlyEdge(true);
-            castEdgePopUpFormToVisJS();
-        } else {
-            //!TODO make more pritty
-            alert("somthing went wrong" + response);
-        }
+        $.ajax({
+            type: "PUT",
+            url: BASE_URL + "doc/"+ DOCID + "/edge/" + $("#edgeFrom").val() + "/" + $("#edgeTo").val(),
+            async: false,
+            contentType: 'application/json;charset=utf-8',
+            data: JSON.stringify( castEdgePopUpFormToRequest() ),
+            success: function(vertices) {
+                castEdgePopUpFormToVisJS();
+            },
+            error: function(error) {
+                alert(JSON.stringify(error));
+            }
+        });
+
+        document.getElementById("editEdge").innerHTML = "<i class='far fa-edit'></i>Edit";
+        setReadOnlyEdge(true);
     }
 }
 /**
@@ -743,17 +830,28 @@ function onClickEditNode() {
         document.getElementById("editNode").innerHTML = "<i class='fas fa-check'></i>Done";
         setReadOnlyNode(false);
     } else {
-        var nodeObj = nodes.get($('input[id="nodeID"]').val());
-        nodeObj.label = $('#nodeName').val();
-        var response = callNodePUT(nodeObj);
-        if (response) {
-            document.getElementById("editNode").innerHTML = "<i class='far fa-edit'></i>Edit";
-            setReadOnlyNode(true);
-            nodes.update(nodeObj)
-            //console.log(response);
-        } else {
-            alert("somthing went wrong " + response);
-        }
+        var nodeObj = nodes.get( $('input[id="nodeID"]').val() );
+        //nodeObj.flavor = nodeObj.group;
+        nodeObj.name = $('#nodeName').val();
+
+        $.ajax({
+            type: "PUT",
+            url: BASE_URL + "doc/"+ DOCID + "/node/" + $('input[id="nodeID"]').val(),
+            contentType: 'application/json;charset=utf-8',
+            async: false,
+            data: JSON.stringify( nodeObj ),
+            dataType: 'json',
+            success: function(vertices){
+                var nodeId = Object.keys(vertices)[0];
+                nodes.update( castNodeNet( vertices[nodeId], nodeId ) );
+            },
+            error: function(error) {
+                alert("unable to edit node/net:\n"+JSON.stringify(error));
+            }
+        });
+
+        document.getElementById("editNode").innerHTML = "<i class='far fa-edit'></i>Edit";
+        setReadOnlyNode(true);
     }
 }
 /**
@@ -762,11 +860,56 @@ function onClickEditNode() {
 function onClickDeactivateNode(){
     var nodeid = document.getElementById("nodeID").value;
     var nodeObj = nodes.get(nodeid);
-    if (nodeObj.group === "disabled"){
-        callNodeFirewallDELETE(nodeid);
-    } else {
-        callNodeFirewallPOST(nodeid);
+
+    myData = "{\"cancelled\":\"true\"}";
+    if (nodeObj.cancelled == true) {
+        myData = "{\"cancelled\":\"false\"}";
     }
+
+    $.ajax({
+        type: "PUT",
+        url: BASE_URL + "doc/"+ DOCID + "/node/" + nodeid,
+        contentType: 'application/json;charset=utf-8',
+        async: false,
+        data: myData,
+        dataType: 'json',
+        success: function(data){
+            castNodeNet(data[nodeid], nodeid);
+            nodes.update( data[nodeid] );
+        },
+        error: function(error) {
+            alert("unable to cancel node:\n"+JSON.stringify(error));
+        }
+    });
+    closePopUp();
+}
+//blabla
+function onClickDeactivateEdge(){
+    var edgeFrom = $("#edgeFrom").val();
+    var edgeTo = $("#edgeTo").val();
+    var edge = edges.get(edgeFrom+"-"+edgeTo);
+
+    myData = "{\"cancelled\":\"true\"}";
+    if (edge.cancelled == true) {
+        myData = "{\"cancelled\":\"false\"}";
+    }
+
+    $.ajax({
+        type: "PUT",
+        url: BASE_URL + "doc/"+ DOCID + "/edge/" + edgeFrom + "/" + edgeTo,
+        contentType: 'application/json;charset=utf-8',
+        async: false,
+        data: myData,
+        dataType: 'json',
+        success: function(data) {
+            //alert(JSON.stringify(data))
+            edges.update( castEdge(data[edgeTo].edgesBack[edgeFrom], edgeFrom, edgeTo) );
+        },
+        error: function(error) {
+            alert("unable to cancel node:\n"+JSON.stringify(error));
+        }
+    });
+    closePopUp();
 }
 
 function castEdgePopUpFormToVisJS() {
@@ -835,25 +978,4 @@ function resetStepIndicator() {
         $('#step-' + step).removeClass('complete').removeClass('active').addClass('disabled').css('font-weight', 'Normal');
     });
     $('#step-login').addClass('active').css('font-weight', 'Bold');
-}
-
-/**
- * Triggered when the API firewall call is scucessfull and the node has to be marked as disabled
- * in the vis.js visualisation
- * #!TODO complet!
- */
-function setVertexDisabled(nodeID){
-    var nodeOfIDObj = nodes.get(nodeID);
-    nodeOfIDObj.group = "disabled";
-    nodes.update(nodeOfIDObj);
-}
-
-/**
- * Triggered when the API firewall call is scucessfull and the node has to be marked as disabled
- * in the vis.js visualisation
- */
-function setVertexEnabled(nodeID){
-    var nodeOfIDObj = nodes.get(nodeID);
-    nodeOfIDObj.group = nodeOfIDObj.flavor;
-    nodes.update(nodeOfIDObj);
 }

@@ -7,22 +7,12 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import de.tub.mcc.fogmock.nodemanager.graphserv.agent.ResponseTcConfig;
 import de.tub.mcc.fogmock.nodemanager.graphserv.ansible.ResponseAnsible;
 import de.tub.mcc.fogmock.nodemanager.graphserv.aws.AWSConfig;
 import de.tub.mcc.fogmock.nodemanager.graphserv.aws.ResponseAWSConfig;
 import de.tub.mcc.fogmock.nodemanager.graphserv.openstack.OpenstackConfig;
 import de.tub.mcc.fogmock.nodemanager.graphserv.openstack.ResponseOpenstackConfig;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -31,25 +21,18 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.helpers.collection.MapUtil;
 
 
-import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import java.io.*;
-import java.net.URI;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 
 import static org.neo4j.graphdb.Direction.INCOMING;
 import static org.neo4j.graphdb.Direction.OUTGOING;
-import org.neo4j.kernel.configuration.Config;
-import org.neo4j.server.web.WebServer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,6 +116,18 @@ public class ServiceUserInterface extends ServiceCommon {
         else return Response.ok(fileStream, mediaType(filePath)).build();
     }
 
+
+    /** This method sets the bootstrapped docId to the given docId
+     *
+     * @param docId to be written as staticDocId
+     * @return
+     */
+    @Path("/doc/{docId}/setBootstrapped")
+    @PUT
+    public Response setBootstrappedDocId( @PathParam("docId") final Long docId ) {
+        docIdStatic = docId;
+        return Response.ok().entity( "docId " + docId + " successfully set as new bootstrapped docId" ).type( MediaType.TEXT_PLAIN ).build();
+    }
 
     /** TODO
      *
@@ -540,7 +535,7 @@ public class ServiceUserInterface extends ServiceCommon {
     @Path("/doc/{docId}/net")
     @POST
     public Response createNet(  @PathParam("docId") final Long docId, ModelNet net ) {
-        if ( docId.equals(docIdStatic) && !net.addr.equals("0.0.0.0/0") ) {
+        if ( docId.equals(docIdStatic) && !net.addr.getFullIp().equals("0.0.0.0/0") ) {
             return Response.status(428).entity("illegal net creation after bootstrap").type(MediaType.TEXT_PLAIN).build();
         }
         return createVertex ( docId, net, "NET");
@@ -672,6 +667,7 @@ public class ServiceUserInterface extends ServiceCommon {
             writeVertex(jg, nodeEnd);
             jg.writeEndObject();
             if ( docId.equals(docIdStatic) ) {
+                checkIpNetIpRealmCollision(docId);
                 if (db.getNodeById(nodeToId).hasLabel(NODE)) {
                     return Response.status(428).entity("illegal node edge creation after bootstrap").type(MediaType.TEXT_PLAIN).build();
                 }
@@ -680,7 +676,7 @@ public class ServiceUserInterface extends ServiceCommon {
                  *  Post-BOOTSTRAP
                  */
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
             }
 
@@ -824,7 +820,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
 
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
 
             }
@@ -885,7 +881,7 @@ public class ServiceUserInterface extends ServiceCommon {
                      *  Post-BOOTSTRAP
                      */
                     startPropagation(docId, "WADJ");
-                    getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                    getAdjListsAndSendToNA(null, docId, "WADJ");
                     //getAdjLists(jg, docId, "WADJ");
                 }
 
@@ -927,17 +923,26 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
             }
             Result result = db.execute( "MATCH (d:DOC)-[r1:CONTAIN]->(n)" +
-                    "WHERE ID(d)=$docId AND ID(n)=$nId OPTIONAL MATCH (n)-[r]-()" +
-                    " DELETE r1, r, n " +
-                    " ", params );
+                    " WHERE ID(d)=$docId AND ID(n)=$nId DETACH DELETE n ", params );
             if ( result.getQueryStatistics().getNodesDeleted() != 1) {
                 logger.info("Nodes deleted: " + result.getQueryStatistics().getNodesDeleted());
                 return Response.status(400).entity( "illegal document reference" ).type( MediaType.TEXT_PLAIN ).build();
             }
             JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
-            jg.writeObject(nId);
+            jg.writeStartArray();
+                jg.writeObject(nId);
+            jg.writeEndArray();
             jg.flush();
             jg.close();
+
+            if ( docId.equals(docIdStatic) ) {
+                /*
+                 *  Post-BOOTSTRAP
+                 */
+                startPropagation(docId, "WADJ");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
+                //getAdjLists(jg, docId, "WADJ");
+            }
 
             tx.success();
         } catch (NotFoundException e) {
@@ -975,13 +980,22 @@ public class ServiceUserInterface extends ServiceCommon {
                 }
             }
 
-            Result result = db.execute( "UNWIND $delIds AS delId MATCH (d:DOC)-[d2f:CONTAIN]->(n) " +
-                    " WHERE ID(d)=$docId AND ID(n)=delId OPTIONAL MATCH (n)-[r:LINK]-(n2) DELETE d2f,r,n", params );
+            Result result = db.execute( "UNWIND $delIds AS delId MATCH (d:DOC)-[:CONTAIN]->(n) " +
+                    " WHERE ID(d)=$docId AND ID(n)=delId DETACH DELETE n", params );
             if ( result.getQueryStatistics().getNodesDeleted() == message.length ) {
                 JsonGenerator jg = objectMapper.getFactory().createGenerator( sw );
                 jg.writeObject(message);
                 jg.flush();
                 jg.close();
+
+                if ( docId.equals(docIdStatic) ) {
+                    /*
+                     *  Post-BOOTSTRAP
+                     */
+                    startPropagation(docId, "WADJ");
+                    getAdjListsAndSendToNA(null, docId, "WADJ");
+                    //getAdjLists(jg, docId, "WADJ");
+                }
 
             	tx.success();
             } else {
@@ -1219,7 +1233,7 @@ public class ServiceUserInterface extends ServiceCommon {
                  *  Post-BOOTSTRAP
                  */
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(null, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(null, docId, "WADJ");
                 //getAdjLists(jg, docId, "WADJ");
 
             }
@@ -1270,7 +1284,7 @@ public class ServiceUserInterface extends ServiceCommon {
             }
             if ( action.equals("writeagents") ) {
                 startPropagation(docId, "WADJ");
-                getAdjListsAndSendToNA(jg, docId, "WADJ", "put");
+                getAdjListsAndSendToNA(jg, docId, "WADJ");
             }
 
             jg.flush();
@@ -1711,7 +1725,7 @@ public class ServiceUserInterface extends ServiceCommon {
         return jsonString;
     }
 
-    @Deprecated
+
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/doc/{docId}/parseDhcp")
@@ -1735,6 +1749,12 @@ public class ServiceUserInterface extends ServiceCommon {
                     " UNWIND $dhcpMap[nno][nne] AS o " +
                     " MATCH (vne)-[r:LINK]->(vno) SET r+=o " +
                     " ", params );
+
+            // Set the number of nodes which have received an ip address.
+            // This value is used by the endpoint ansiblelog in order to recognize the initial heartbeat of the last agent.
+            ResourceIterator<Long> c = db.execute("MATCH (vdoc:DOC)-[r:LINK]->(vnode:NODE) WHERE id(vdoc)="+docId+
+                    " RETURN count(vnode) as c").columnAs("c");
+            pendingInitialAgentHeartBeatCountsStatic = c.next().longValue();
 
             tx.success();
         } catch (Exception e) {
@@ -1775,16 +1795,30 @@ public class ServiceUserInterface extends ServiceCommon {
     @POST
     public Response setEnvironmentStatus(ResponseAnsible responseAnsible){
 
-        try {
-            if (docIdStatic < 0) {
-                return Response.status(428).entity(buildJsonMessage("Document not instantiated.")).type(MediaType.APPLICATION_JSON).build();
-            }
-
-            this.responseAnsible = responseAnsible;
-            return Response.ok().entity(buildJsonMessage(responseAnsible.getMessage())).type(MediaType.APPLICATION_JSON).build();
-        } catch (Exception e){
-            return Response.status(500).entity(buildJsonMessage("Error occured. Status not set.")).type(MediaType.APPLICATION_JSON).build();
+        if (docIdStatic < 0) {
+            return Response.status(428).entity(buildJsonMessage("Document not instantiated.")).type(MediaType.APPLICATION_JSON).build();
         }
+        this.responseAnsible = responseAnsible;
+        System.out.println( "pendingInitialAgentHeartBeatCountsStatic before: "+pendingInitialAgentHeartBeatCountsStatic );
+        if (this.responseAnsible.getStatus() == ResponseAnsible.Status.BOOTSTRAPPED) {
+            pendingInitialAgentHeartBeatCountsStatic--;
+            if (pendingInitialAgentHeartBeatCountsStatic <= 0) {
+                this.responseAnsible.setStatus(ResponseAnsible.Status.DONE);
+                //return initialPropagationWithoutDocId("writeagents");
+                try ( Transaction tx = db.beginTx() ) {
+                    startPropagation(docIdStatic, "WADJ");
+                    getAdjListsAndSendToNA(null, docIdStatic, "WADJ");
+                    tx.success();
+                } catch (Exception e) {
+                    pendingInitialAgentHeartBeatCountsStatic++;
+                    logger.error("Exception while propagation:", e.getStackTrace());
+                    //return Response.status(500).entity(buildJsonMessage(e.getMessage())).type(MediaType.APPLICATION_JSON).build();
+                    return Response.status(500).entity(buildJsonMessage("Error during initial NA communication:\n"+e.getMessage())).type(MediaType.APPLICATION_JSON).build();
+                }
+            }
+        }
+
+        return Response.ok().entity(buildJsonMessage(responseAnsible.getMessage()+pendingInitialAgentHeartBeatCountsStatic)).type(MediaType.APPLICATION_JSON).build();
     }
 
     /** This method provides little insight into what happens in ansible very high level by returning a status message.
@@ -1851,6 +1885,9 @@ public class ServiceUserInterface extends ServiceCommon {
                 .entity(buildJsonMessage("Document with id "+docIdStatic+" already instantiated"))
                 .type(MediaType.APPLICATION_JSON).build();
         if (docId == null) return Response.status(400).entity(buildJsonMessage("Invalid doc id")).type(MediaType.APPLICATION_JSON).build();
+
+        docIdStatic = docId;
+
 //        //TODO: please change the code below if you don't want to share the yml via the tmp folder
 //        String tmpPath = System.getProperty("java.io.tmpdir");
 //        System.out.println("storing ansible yml files to tmp folder " + tmpPath);
@@ -1869,16 +1906,18 @@ public class ServiceUserInterface extends ServiceCommon {
 
             yml = ( platform.equals("os") ? getYmlOS(docId) : getYmlAWS(docId) );
             logger.info("yml is " + yml);
-            //TODO: uncomment before pushing
+
             responseAnsible.setStatus(ResponseAnsible.Status.BOOTSTRAPPING);
             ansibleLog = InfrastructureController.getInstance().bootstrapSetup(platform.equals("os"));
             logger.info(ansibleLog);
 
             tx.success();
         } catch (ExceptionInvalidData e) {
+            docIdStatic = -1;
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_BOOTSTRAPPED);
             return Response.status(400).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         } catch (ExceptionInternalServerError e) {
+            docIdStatic = -1;
             responseAnsible.setError(ResponseAnsible.ErrorStatus.NOT_BOOTSTRAPPED);
             return Response.status(500).entity(buildJsonMessage(e.getMessage())).type( MediaType.APPLICATION_JSON ).build();
         }
@@ -1893,7 +1932,6 @@ public class ServiceUserInterface extends ServiceCommon {
 //        bw.write(yml);
 //        bw.close();
 
-        docIdStatic = docId;
         return Response.ok().entity(buildJsonMessage("Document instantiated. \nBootstrapping successfully started.\n" +
                 "Ansible status: " + responseAnsible.getMessage() +
                 "\nPlease click on Expert view to see the details of the environment setup.")).type(MediaType.APPLICATION_JSON).build();
@@ -1912,6 +1950,8 @@ public class ServiceUserInterface extends ServiceCommon {
     public Response destroy( @PathParam("docId") final Long docId, @PathParam("platform") final String platform) throws IOException {
         if (docId == null) return Response.status(400).entity(buildJsonMessage("Invalid doc id")).type(MediaType.APPLICATION_JSON).build();
 
+        if (docId.equals(docIdStatic)) docIdStatic = -1;
+
         responseAnsible.setStatus(ResponseAnsible.Status.DESTROYING);
         String ansibleLog = null;
 
@@ -1927,7 +1967,6 @@ public class ServiceUserInterface extends ServiceCommon {
         responseAnsible.setError(ResponseAnsible.ErrorStatus.NO_ERROR);
         responseAnsible.setStatus(ResponseAnsible.Status.DESTROYED);
 
-        docIdStatic = -1;
         return Response.ok().entity(buildJsonMessage("[LOG]: " + ansibleLog.substring(0, Math.min(ansibleLog.length(), 300)) + " ..." + "\n"
                 + "Ansible status: " + responseAnsible.getMessage())).type(MediaType.APPLICATION_JSON).build();
 
@@ -2292,6 +2331,7 @@ public class ServiceUserInterface extends ServiceCommon {
                 yg.writeStartArray();
                     yg.writeString("22");
                     yg.writeString("5000");
+                    yg.writeString("5001");
                 yg.writeEndArray();
                 yg.writeFieldName("cidr_ip");
                 yg.writeString("0.0.0.0/0");

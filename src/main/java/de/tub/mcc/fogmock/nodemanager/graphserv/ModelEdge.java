@@ -29,8 +29,8 @@ public class ModelEdge extends ModelIp {
         super(addr);
         setPropsParseLongFromString("in_rate", in_rate, 1000000L);
         setPropsParseLongFromString("out_rate", out_rate, 1000000L);
-        setPropsParseLongFromString("delay", delay, 10L);
-        setPropsParseLongFromString("dispersion", dispersion, 5L);
+        setPropsParseLongFromString("delay", delay, 0L);
+        setPropsParseLongFromString("dispersion", dispersion, 0L);
         setPropsParseDoubleFromString("loss", loss,0.0);
         setPropsParseDoubleFromString("corrupt", corrupt, 0.0);
         setPropsParseDoubleFromString("duplicate", duplicate, 0.0);

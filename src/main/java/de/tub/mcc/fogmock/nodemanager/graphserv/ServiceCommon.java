@@ -38,6 +38,7 @@ public class ServiceCommon {
     public static ResponseAnsible responseAnsible = new ResponseAnsible();
     public static ResponseOpenstackConfig openStackConfig = new ResponseOpenstackConfig();
     public static long docIdStatic = -1;
+    public static long pendingInitialAgentHeartBeatCountsStatic = 0;
     private static Logger logger = LoggerFactory.getLogger(InfrastructureController.class);
     final Label CONFIG = Label.label( "CONFIG" );
     final Label DOC = Label.label( "DOC" );
@@ -132,6 +133,9 @@ public class ServiceCommon {
             } catch (ExceptionInvalidData e) {
                 logger.error("unable to add icon field to json:", e);
             }
+        }
+        if (n.hasLabel(NET)) {
+            jg.writeStringField("icon", "net");
         }
 
         Relationship tmpMgmtEdge = null;
@@ -257,13 +261,13 @@ public class ServiceCommon {
      *
      ****************************************************************************************/
 
-    public void getAdjListsAndSendToNA(JsonGenerator jg, Long docId, String edgeLabel, String naMethod) throws Exception {
-        gatherAdjLists(jg, docId, edgeLabel, naMethod);
+    public void getAdjListsAndSendToNA(JsonGenerator jg, Long docId, String edgeLabel) throws Exception {
+        gatherAdjLists(jg, docId, edgeLabel, true);
     }
     public void getAdjLists(JsonGenerator jg, Long docId, String edgeLabel) throws Exception {
-        gatherAdjLists(jg, docId, edgeLabel, "none");
+        gatherAdjLists(jg, docId, edgeLabel, false);
     }
-    public void gatherAdjLists(JsonGenerator jg, Long docId, String edgeLabel, String naMethod) throws Exception {
+    public void gatherAdjLists(JsonGenerator jg, Long docId, String edgeLabel, boolean callAgents) throws Exception {
         if (edgeLabel == null){
             throw new Exception("Edge Label undefined.");
         }
@@ -272,7 +276,7 @@ public class ServiceCommon {
         Result tcConfigs = db.execute(
                 "MATCH (vdoc:DOC)-[mgmtEdge:LINK]->(no:NODE)<-[eno:LINK]-(:NET) WHERE id(vdoc)="+docId+" AND (no)-[:"+edgeLabel+"]-() " +
                         " OPTIONAL MATCH (no)<-[r1:"+edgeLabel+"]-(:NODE)<-[eni1:LINK]-(:NET) " + // in case of incoming ADJ edges consider out_rate
-                        " WITH no, eno, mgmtEdge.addr as mgmtIp, collect(r1 {in_rate:r1.in_rate+'kbps', out_rate:r1.out_rate+'kbps', dispersion:r1.dispersion+'ms', delay:r1.delay+'ms', .loss, .corrupt, .duplicate, .reorder, dst_net:eni1.addr}) as ru1 " +
+                        " WITH no, eno, mgmtEdge.addr as mgmtIp, collect(r1 {in_rate:r1.in_rate+'kbps', out_rate:r1.out_rate+'kbps', dispersion:0+'ms', delay:0+'ms', loss:0, corrupt:0, duplicate:0, reorder:0, dst_net:eni1.addr}) as ru1 " +
                         " OPTIONAL MATCH (no)-[r2:"+edgeLabel+"]->(:NODE)<-[eni2:LINK]-(:NET) " + // in case of outgoing ADJ edges consider in_rate
                         " WITH mgmtIp, { in_rate:eno.in_rate+'kbps', out_rate:eno.out_rate+'kbps', rules:ru1+collect(r2 {in_rate:r2.out_rate+'kbps', out_rate:r2.in_rate+'kbps', dispersion:r2.dispersion+'ms', delay:r2.delay+'ms', .loss, .corrupt, .duplicate, .reorder, dst_net:eni2.addr}) } as tcConfig " +
                         " RETURN mgmtIp, tcConfig, size(tcConfig.rules) as countRules " +
@@ -284,39 +288,23 @@ public class ServiceCommon {
         if (jg != null) jg.writeStartObject();
         while ( tcConfigs.hasNext() ) {
             Map<String,Object> resMap = tcConfigs.next(); //tcConfig for one agent with mgmtIp...
-            if (resMap.get("countRules")==null || (long)resMap.get("countRules")==0) continue;
+            //if (resMap.get("countRules")==null || (long)resMap.get("countRules")==0) continue;
             String ipMgmt = resMap.get("mgmtIp").toString();
 
             /*
              * Nodeagent communication
              */
-            ClientResponse resp = null;
-            if (naMethod.toLowerCase().equals("post")) {
-                logger.info("CALLING AGENT FIREWALL " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
-                        .path("api").path("firewall/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
-                        .post(ClientResponse.class, MapUtil.map("active", true));
-                if (resp != null && resp.getStatus() != 200) {
-                    throw new Exception("Agent Firewall POST call to "+getBaseURI(ipMgmt, 5000)+
-                            " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
-                }
-
-                logger.info("CALLING AGENT POST " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
-                        .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
-                        .post(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
-            }
-            if (naMethod.toLowerCase().equals("put")) {
+            if (callAgents) {
                 logger.info("CALLING AGENT PUT " + getBaseURI(ipMgmt, 5000).toString());
-                resp = client.resource(getBaseURI(ipMgmt, 5000))
+                ClientResponse resp = client.resource(getBaseURI(ipMgmt, 5000))
                         .path("api").path("tc-config/").accept(MediaType.TEXT_PLAIN).type(MediaType.APPLICATION_JSON)
                         .put(ClientResponse.class, objectMapper.writeValueAsString(resMap.get("tcConfig")));
-            }
-            if (resp != null && resp.getStatus() != 200) {
-                throw new Exception("Agent call to "+getBaseURI(ipMgmt, 5000)+
-                        " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
-            }
 
+                if (resp.getStatus() != 200) {
+                    throw new Exception("Agent call to "+getBaseURI(ipMgmt, 5000)+
+                            " returned with code "+resp.getStatus()+": "+resp.getEntity(String.class));
+                }
+            }
             if (jg != null) jg.writeFieldName( ipMgmt );
             if (jg != null) jg.writeRawValue( objectMapper.writeValueAsString(resMap.get("tcConfig")) );
         }
