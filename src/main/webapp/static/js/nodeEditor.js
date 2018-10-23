@@ -119,8 +119,8 @@ function draw() {
               fit: true
             },
             timestep: 0.5,
-            adaptiveTimestep: true            
-        },        
+            adaptiveTimestep: true
+        },
         edges: {
             color: BLACK,
             font: {align: 'top'},
@@ -616,14 +616,14 @@ function castNodeNet(nodeObj, nodeId) {
     nodeObj.label = nodeObj.name;
     if (nodeObj.icon == "net") {
         nodeObj.label = nodeObj.name+"\n"+nodeObj.addr;
-    } 
+    }
     if (nodeObj.icon != "net") {
         var edge = nodeObj.edgesBack[ Object.keys(nodeObj.edgesBack)[0] ];
         if (edge != undefined) {
             nodeObj.addr = edge.addr;
             nodeObj.label = nodeObj.name+"\n"+nodeObj.addr;
         }
-    } 
+    }
 
     nodeObj.font = nodeObj.cancelled ? {color: "red"} : {color: "#000"};
     nodeObj.group = nodeObj.icon;
@@ -685,7 +685,7 @@ function loadTopology() {
                     var edgeFrom = Object.keys(doc.allNodes[nodeId].edgesBack)[i];
                     edge = doc.allNodes[nodeId].edgesBack[ edgeFrom ];
                     console.log("from:" + edgeFrom + " To:" + edgeTo);
-                    console.log(edge);                    
+                    console.log(edge);
                     edges.add( castEdge(edge, edgeFrom, edgeTo) );
                 }
             }
@@ -698,11 +698,11 @@ function loadTopology() {
                     var edgeFrom = Object.keys(doc.allNets[nodeId].edgesBack)[i];
                     edge = doc.allNets[nodeId].edgesBack[ edgeFrom ];
                     console.log("from:" + edgeFrom + " To:" + edgeTo);
-                    console.log(edge);                    
+                    console.log(edge);
                     edges.add( castEdge(edge, edgeFrom, edgeTo) );
-                }                
-            }            
-        }, 
+                }
+            }
+        },
         error: function(error)  {
             alert( "unable to load document "+DOCID+":\n"+JSON.stringify(error) );
         }
@@ -766,7 +766,24 @@ function nodePopUp(params) {
     // console.log(nodes.get(params.nodes[0]));
     document.getElementById("nodeID").value = nodeObj.id;
     document.getElementById("nodeName").value = nodeObj.name;
-    document.getElementById("nodeAddr").value = nodeObj.addr;
+    document.getElementById("nodeAddrMgnt").value = nodeObj.addr;
+
+    var networks = "";
+     	for (var net in nodeObj.edgesBack) {
+     		var netvalue = nodeObj.edgesBack[net];
+        var networkName = "pudding";
+        var test = nodes.get(net).name;
+        console.log(test);
+     		//var networkName = callVertexGET(net).responseJSON[net].name;
+     		networks = networks + "<div class=\"form-group row\" style=\"margin-top: -5px;\">";
+     		networks = networks + "<label for=\"" + "SOMEID" + "\"class=\"col-sm-4 form-control-label\">" + "IP (" + networkName + "):" + "</label>";
+     		networks = networks + "<div class=\"col-sm-8\">";
+     		networks = networks + "<input id=\" " + "SomeID" + "\" class=\"form-control form-control-sm\" readonly value=\"" + netvalue.addr + "\"/>";
+     		networks = networks + "</div> </div>";
+     	}
+
+    document.getElementById("networks").innerHTML = networks;
+
     document.getElementById("nodeFlavor").value = nodeObj.flavor;
     document.getElementById("nodeImage").value = nodeObj.image;
     $('#popupNode').addClass('show');
@@ -799,12 +816,12 @@ function onClickEditEdge() {
             data: JSON.stringify( castEdgePopUpFormToRequest() ),
             success: function(vertices) {
                 castEdgePopUpFormToVisJS();
-            }, 
+            },
             error: function(error) {
                 alert(JSON.stringify(error));
             }
         });
-        
+
         document.getElementById("editEdge").innerHTML = "<i class='far fa-edit'></i>Edit";
         setReadOnlyEdge(true);
     }
@@ -849,10 +866,10 @@ function onClickDeactivateNode(){
     var nodeObj = nodes.get(nodeid);
 
     myData = "{\"cancelled\":\"true\"}";
-    if (nodeObj.cancelled == true) { 
+    if (nodeObj.cancelled == true) {
         myData = "{\"cancelled\":\"false\"}";
     }
-    
+
     $.ajax({
         type: "PUT",
         url: BASE_URL + "doc/"+ DOCID + "/node/" + nodeid,
@@ -863,7 +880,7 @@ function onClickDeactivateNode(){
         success: function(data){
             castNodeNet(data[nodeid], nodeid);
             nodes.update( data[nodeid] );
-        },            
+        },
         error: function(error) {
             alert("unable to cancel node:\n"+JSON.stringify(error));
         }
@@ -875,12 +892,12 @@ function onClickDeactivateEdge(){
     var edgeFrom = $("#edgeFrom").val();
     var edgeTo = $("#edgeTo").val();
     var edge = edges.get(edgeFrom+"-"+edgeTo);
-    
+
     myData = "{\"cancelled\":\"true\"}";
-    if (edge.cancelled == true) { 
+    if (edge.cancelled == true) {
         myData = "{\"cancelled\":\"false\"}";
     }
-    
+
     $.ajax({
         type: "PUT",
         url: BASE_URL + "doc/"+ DOCID + "/edge/" + edgeFrom + "/" + edgeTo,
@@ -891,12 +908,12 @@ function onClickDeactivateEdge(){
         success: function(data) {
             //alert(JSON.stringify(data))
             edges.update( castEdge(data[edgeTo].edgesBack[edgeFrom], edgeFrom, edgeTo) );
-        },            
+        },
         error: function(error) {
             alert("unable to cancel node:\n"+JSON.stringify(error));
         }
     });
-    closePopUp();   
+    closePopUp();
 }
 
 function castEdgePopUpFormToVisJS() {
@@ -966,4 +983,3 @@ function resetStepIndicator() {
     });
     $('#step-login').addClass('active').css('font-weight', 'Bold');
 }
-
