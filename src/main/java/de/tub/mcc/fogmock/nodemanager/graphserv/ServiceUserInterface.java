@@ -2400,19 +2400,23 @@ public class ServiceUserInterface extends ServiceCommon {
      * @return
      */
     private String getAWSImage(String image) {
+
+				// empty default image: ami-0bdb1d6c15a40392c
+				// image based on default with docker, rabbitmq, and java: ami-078497568ccfcd100
+
         String awsImage;
         //default image "ubuntu-16.04"
         if (image.equals("")){
-            return awsImage = "ami-0bdb1d6c15a40392c";
+            return awsImage = "ami-078497568ccfcd100";
         }
         /*
         other images can be set here
          */
         if (image.toLowerCase().contains("ubuntu")){
-            return awsImage = "ami-0bdb1d6c15a40392c";
+            return awsImage = "ami-078497568ccfcd100";
         }
         else {
-            return awsImage = "ami-0bdb1d6c15a40392c";
+            return awsImage = "ami-078497568ccfcd100";
         }
     }
 
