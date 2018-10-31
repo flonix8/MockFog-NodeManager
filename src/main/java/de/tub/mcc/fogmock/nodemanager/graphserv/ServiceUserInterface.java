@@ -2330,8 +2330,32 @@ public class ServiceUserInterface extends ServiceCommon {
                 yg.writeFieldName("ports");
                 yg.writeStartArray();
                     yg.writeString("22");
-                    yg.writeString("5000");
-                    yg.writeString("5001");
+                    yg.writeString("5000"); //agent
+                    yg.writeString("5001"); //iperf
+
+                    //https://www.rabbitmq.com/networking.html
+		    yg.writeString("4369"); //rabbitmq epmd
+		    yg.writeString("5671"); //rabbitmq amqp
+                    yg.writeString("5672"); //rabbitmq amqp
+		    yg.writeString("15672"); //rabbitmq http api
+		    yg.writeString("25672"); //rabbitmq inter-node, cli
+		    yg.writeString("35672"); //rabbitmq cli tools
+		    yg.writeString("35673"); //rabbitmq cli tools
+		    yg.writeString("35674"); //rabbitmq cli tools
+		    yg.writeString("35675"); //rabbitmq cli tools
+		    yg.writeString("35676"); //rabbitmq cli tools
+		    yg.writeString("35677"); //rabbitmq cli tools
+		    yg.writeString("35678"); //rabbitmq cli tools
+		    yg.writeString("35679"); //rabbitmq cli tools
+		    yg.writeString("35680"); //rabbitmq cli tools
+		    yg.writeString("35681"); //rabbitmq cli tools
+		    yg.writeString("35682"); //rabbitmq cli tools
+		    yg.writeString("61613"); //rabbitmq stomp clients
+		    yg.writeString("61614"); //rabbitmq stomp clients
+		    yg.writeString("1883"); //rabbitmq mqtt
+		    yg.writeString("8883"); //rabbitmq mqtt
+		    yg.writeString("15674"); //rabbitmq stomp over websockets
+		    yg.writeString("15675"); //rabbitmq mqtt over websockets
                 yg.writeEndArray();
                 yg.writeFieldName("cidr_ip");
                 yg.writeString("0.0.0.0/0");
