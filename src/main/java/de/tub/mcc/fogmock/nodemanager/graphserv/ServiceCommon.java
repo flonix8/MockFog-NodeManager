@@ -274,7 +274,7 @@ public class ServiceCommon {
 
         // for the case of not using the ResponseTcConfig Class but directly querying the JSON from Neo4j
         Result tcConfigs = db.execute(
-                "MATCH (vdoc:DOC)-[mgmtEdge:LINK]->(no:NODE)<-[eno:LINK]-(:NET) WHERE id(vdoc)="+docId+" AND (no)-[:"+edgeLabel+"]-() " +
+                "MATCH (vdoc:DOC)-[mgmtEdge:LINK]->(no:NODE)<-[eno:LINK]-(:NET) WHERE id(vdoc)="+docId+" " +
                         " OPTIONAL MATCH (no)<-[r1:"+edgeLabel+"]-(:NODE)<-[eni1:LINK]-(:NET) " + // in case of incoming ADJ edges consider out_rate
                         " WITH no, eno, mgmtEdge.addr as mgmtIp, collect(r1 {in_rate:r1.in_rate+'kbps', out_rate:r1.out_rate+'kbps', dispersion:0+'ms', delay:0+'ms', loss:0, corrupt:0, duplicate:0, reorder:0, dst_net:eni1.addr}) as ru1 " +
                         " OPTIONAL MATCH (no)-[r2:"+edgeLabel+"]->(:NODE)<-[eni2:LINK]-(:NET) " + // in case of outgoing ADJ edges consider in_rate
