@@ -14,8 +14,8 @@
         "rate" : "1000000",
         "icon" : "device_sm"
     },
-    "BeagleBone Black": {
-        "flavor" : "m4.large",
+    "M3.medium Instance": {
+        "flavor" : "m3.medium",
         "rate" : "100000",
         "icon" : "device_sm"
     },
