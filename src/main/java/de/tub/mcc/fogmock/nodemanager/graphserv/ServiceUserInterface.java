@@ -2313,7 +2313,7 @@ public class ServiceUserInterface extends ServiceCommon {
                     }
                     yg.writeFieldName("image");
                     String image = (String)n.getProperty("image");
-                    yg.writeString(getAWSImage(image));
+                    yg.writeString( image.trim().toLowerCase().startsWith("ami") ? image : "ami-078497568ccfcd100" );
                     yg.writeFieldName("flavor");
                     yg.writeString(getFlavorFromDeviceFile((String)n.getProperty("flavor"), false));
                     yg.writeEndObject();
@@ -2415,32 +2415,6 @@ public class ServiceUserInterface extends ServiceCommon {
         }
         else {
             return osImage = "ubuntu-16.04";
-        }
-    }
-
-    /** This method returns the image of the AWS specific images.
-     *
-     * @param image the image to be mapped
-     * @return
-     */
-    private String getAWSImage(String image) {
-
-				// empty default image: ami-0bdb1d6c15a40392c
-				// image based on default with docker, rabbitmq, and java: ami-078497568ccfcd100
-
-        String awsImage;
-        //default image "ubuntu-16.04"
-        if (image.equals("")){
-            return awsImage = "ami-078497568ccfcd100";
-        }
-        /*
-        other images can be set here
-         */
-        if (image.toLowerCase().contains("ubuntu")){
-            return awsImage = "ami-078497568ccfcd100";
-        }
-        else {
-            return awsImage = "ami-078497568ccfcd100";
         }
     }
 
