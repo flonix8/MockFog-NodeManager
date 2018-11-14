@@ -5,6 +5,7 @@ var isOpenStack = true;
 
 var BLACK = '#2B1B17';
 
+// these labels are used to name networks and machines -- no semantic meaning included!
 var labels = ["thunder", "aftermath", "slave", "lunch", "cats", "island", "punishment", "face", "vacation", "lock", "son",
     "copper", "window", "touch", "farm", "letter", "position", "drawer", "rake", "flavor", "food", "bead", "bee", "slope",
     "ship", "sign", "airport", "sound", "writing", "plants", "flag", "tub", "spade", "guitar", "hate", "peace", "board",
@@ -55,7 +56,7 @@ function getRandomLabel() {
 }
 
 /**
- * Called when the Visualization API is loaded.
+ * Called when the visualization API is loaded.
  */
 function draw() {
     //create a network
@@ -187,7 +188,7 @@ function draw() {
             addEdge: function (inputdata, callback) {
                 console.log('add edge', inputdata);
                 if (inputdata.from == inputdata.to) {
-                    alert("Illegal connection of a component to itself");
+                    alert("Illegal connection of a component to itself!");
                 } else {
                     var nodeFromId = inputdata.from;
                     var nodeToId = inputdata.to;
@@ -208,15 +209,15 @@ function draw() {
                                     edges.remove(edge.id);
                                     edges.add(edge);
                                     //callback(edge);
-                                    console.log("found and added edge\n"+JSON.stringify(data));
+                                    console.log("Found and added edge\n"+JSON.stringify(data));
                                     return;
                                 }
                             }
-                            console.log("PROBLEM: edge was not found and could not be added\n"+data);
+                            console.log("PROBLEM: Edge was not found and could not be added\n" + data);
                         },
                         error: function(error) {
                             console.log(error);
-                            alert( "Failed to create edge: \n\n"+JSON.stringify(error) );
+                            alert( "Failed to create edge: \n" + JSON.stringify(error) );
                             //document.getElementById("alertContent").innerHTML = "Creating this edge is (currently) impossible. See log for details.";
                             //$('#modelAlert').modal('toggle');
                         }
@@ -278,7 +279,7 @@ function onClickAddInstance() {
                 nodes.add( castNodeNet(data[nodeId], nodeId) );
             },
             error: function(error) {
-                alert( "unable to add node:\n"+JSON.stringify(error) );
+                alert( "Unable to add node:\n" + JSON.stringify(error) );
             }
         });
     }
@@ -306,7 +307,7 @@ function onClickAddNetwork() {
             nodes.add( castNodeNet(data[nodeId], nodeId) );
         },
         error: function(error) {
-            alert( "unable to add net:\n"+JSON.stringify(error) );
+            alert("Unable to add net:\n" + JSON.stringify(error) );
         }
     });
 
@@ -336,7 +337,7 @@ function onClickSelectDelete() {
                 }
             },
             error: function(error) {
-                alert( "unable to delete:\n"+JSON.stringify(error) );
+                alert( "Unable to delete:\n" + JSON.stringify(error) );
             }
         });
     } else {
@@ -373,13 +374,6 @@ function getEdgesInOut(nodeId) {
         return edge.from === nodeId || edge.to === nodeId;
     });
 }
-
-
-
-
-
-
-
 
 /**
  * Triggered when we click on the button play
@@ -491,7 +485,7 @@ function onClickShowLog() {
 function saveServerCredentials() {
     SERVER_CRED.ssh_key_name   = document.getElementById("os_ssh_key_name").value;
     SERVER_CRED.external_network  = document.getElementById("external_network").value;
-    //SERVER_CRED.mgmt_network_name = document.getElementById("mgmt_network_name").value;
+    //SERVER_CRED.mgmt_network_name = document.getElementById("mgmt_network_name").value; // this is set automatically by the Node Manager
     //SERVER_CRED.mgmt_network_name = "mgmt";
     SERVER_CRED.auth_url          = document.getElementById("auth_url").value;
     SERVER_CRED.username          = document.getElementById("username").value;
@@ -704,7 +698,7 @@ function loadTopology() {
             }
         },
         error: function(error)  {
-            alert( "unable to load document "+DOCID+":\n"+JSON.stringify(error) );
+            alert( "Unable to load document no. " + DOCID + ":\n" + JSON.stringify(error) );
         }
     });
 }
@@ -846,7 +840,7 @@ function onClickEditNode() {
                 nodes.update( castNodeNet( vertices[nodeId], nodeId ) );
             },
             error: function(error) {
-                alert("unable to edit node/net:\n"+JSON.stringify(error));
+                alert("Unable to edit node/net:\n" + JSON.stringify(error));
             }
         });
 
@@ -878,7 +872,7 @@ function onClickDeactivateNode(){
             nodes.update( data[nodeid] );
         },
         error: function(error) {
-            alert("unable to cancel node:\n"+JSON.stringify(error));
+            alert("Unable to cancel node:\n" + JSON.stringify(error));
         }
     });
     closePopUp();
@@ -906,7 +900,7 @@ function onClickDeactivateEdge(){
             edges.update( castEdge(data[edgeTo].edgesBack[edgeFrom], edgeFrom, edgeTo) );
         },
         error: function(error) {
-            alert("unable to cancel node:\n"+JSON.stringify(error));
+            alert("Unable to deactivate node:\n" + JSON.stringify(error));
         }
     });
     closePopUp();
