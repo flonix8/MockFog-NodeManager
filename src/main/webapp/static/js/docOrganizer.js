@@ -344,7 +344,7 @@ function importNewDoc(files) {
     //var file_data = $("#avatar").prop("files")[0];
     $.ajax({
                 type: 'post',
-                url: "doc/trees",
+                url: BASE_URL + "doc/trees",
                 dataType: "json",
                 contentType: "application/json; charset=UTF-8",
                 cache: false,
