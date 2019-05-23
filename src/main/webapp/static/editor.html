@@ -300,8 +300,9 @@
                                     function skipLogin() {
                                         $('#cardCredentials').hide();
                                         document.getElementById("cardNetwork").style = "visibility: visible";
-                                        moveStepIndicatorOneStepForward('login', 'define');
+                                        isOpenStack = false;
                                         fillFlavorOptionsAWS();
+                                        moveStepIndicatorOneStepForward('login', 'define');
                                     };
                                 </script>
                                 <div class="alert-dark text-center p-2" id="login-error-message"><!-- to be filled async --></div>
