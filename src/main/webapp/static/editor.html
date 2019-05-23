@@ -301,13 +301,13 @@
                                         $('#cardCredentials').hide();
                                         document.getElementById("cardNetwork").style = "visibility: visible";
                                         moveStepIndicatorOneStepForward('login', 'define');
+                                        fillFlavorOptionsAWS();
                                     };
                                 </script>
                                 <div class="alert-dark text-center p-2" id="login-error-message"><!-- to be filled async --></div>
                                 <button class="btn btn-danger" id="login-error-message-button" onclick="skipLogin()"><i class="fas fa-sign-in-alt"></i> Continue without login</button>
                                 <script>
                                     $('#login-error-message').hide();
-                                    $('#login-error-message-button').hide();
                                 </script>
 
                                 <button id="save-credentials-button-aws" type="button" class="btn btn-success"
@@ -644,7 +644,7 @@
                                                         </div>
                                                         <div class="form-group">
                                                             <label for="instanceImage">Image:</label>
-                                                            <input id="instanceImage" class="form-control" value="ami-078497568ccfcd100"/>
+                                                            <input id="instanceImage" class="form-control" value="ami-0c5015410d6d7cbbb"/>
                                                         </div>
                                                         <div class="form-group">
                                                             <label>Amount:</label>
